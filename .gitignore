@@ -1,0 +1,8 @@
+# Made By @dev-kkyu
+
+*/.vs/
+**/Debug/*
+**/Release/*
+
+!**/Debug/*.dll
+!**/Release/*.dll
