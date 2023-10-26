@@ -70,9 +70,8 @@ void CMap::Initialize()
 	stop_time = 0.f;
 
 	// 회전용 변수
-	is_rotating = false;
+	is_Rotating = false;
 	now_angle = 0.f;
-	bef_bot_idx = bottom_index;
 	bef_mv_x = move_x;
 	bef_mv_y = move_y;
 }
@@ -83,7 +82,7 @@ void CMap::Update(float ElapsedTime)
 	if (isInitialized) {
 		glUseProgram(m_shader);
 
-		if (is_rotating)
+		if (is_Rotating)
 			RotateMap(ElapsedTime);
 		else if (stop_time > 0.f) {
 			stop_time -= 1.f * ElapsedTime;
@@ -444,7 +443,7 @@ void CMap::RotateMap(float ElapsedTime)
 		move_y -= bef_mv_y / time_sec * ElapsedTime;
 		move_x += (finalx - bef_mv_x) / time_sec * ElapsedTime;
 		if (now_angle >= 90.f) {
-			is_rotating = false;
+			is_Rotating = false;
 			m_pplayer->SetWalk(true);
 			bottom_index -= 1;
 			now_angle = 0.f;
@@ -461,7 +460,7 @@ void CMap::RotateMap(float ElapsedTime)
 		move_y -= bef_mv_y / time_sec * ElapsedTime;
 		move_x -= (bef_mv_x - finalx) / time_sec * ElapsedTime;
 		if (now_angle <= -90.f) {
-			is_rotating = false;
+			is_Rotating = false;
 			m_pplayer->SetWalk(true);
 			bottom_index += 1;
 			now_angle = 0.f;
@@ -472,14 +471,12 @@ void CMap::RotateMap(float ElapsedTime)
 				bottom_index = 0;
 		}
 	}
-	//is_rotating = false;
 }
 
 void CMap::SetRotate()
 {
-	is_rotating = true;
+	is_Rotating = true;
 	now_angle = 0.f;
-	bef_bot_idx = bottom_index;
 	bef_mv_x = move_x;
 	bef_mv_y = move_y;
 }
