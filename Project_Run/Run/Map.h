@@ -21,6 +21,7 @@ private:
 
 	bool isLeft;
 	bool isRight;
+	bool isSpace;
 	float move_x;
 	float acc_x;
 

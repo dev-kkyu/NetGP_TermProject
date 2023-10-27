@@ -55,7 +55,7 @@ void CMap::Initialize()
 	map_index = -10;
 	bottom_index = 2;
 
-	isLeft = isRight = false;
+	isLeft = isRight = isSpace = false;
 	move_x = 0.f;
 	acc_x = 0.f;
 
@@ -99,6 +99,11 @@ void CMap::Update(float ElapsedTime)
 				++map_index;		// map_index의 의미. 현재 0번위치의 사각형부터 map_data[map_index]의 지형을 본다.
 			}
 
+			// 점프키
+			if (isBottom and isSpace) {
+				m_pplayer->SetWalk(false);
+				isBottom = false;
+			}
 			// 방향키
 			if (isLeft or isRight)
 				acc_x = float(-(int)isLeft + (int)isRight);
@@ -361,14 +366,17 @@ void CMap::KeyboardEvent(int state, unsigned char key)
 	case GLUT_DOWN:
 		switch (key) {
 		case ' ':
-			if (isBottom) {
-				m_pplayer->SetWalk(false);
-				isBottom = false;
-			}
+			isSpace = true;
 			break;
 		}
 		break;
 	case GLUT_UP:
+		switch (key)
+		{
+		case ' ':
+			isSpace = false;
+			break;
+		}
 		break;
 	}
 }
