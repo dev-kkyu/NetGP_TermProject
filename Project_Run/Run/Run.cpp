@@ -102,10 +102,10 @@ GLvoid Display(GLvoid)
 
 	// 그리기 부분 구현: 그리기 관련 부분이 여기에 포함된다.
 
+	if (g_plobby)
+		g_plobby->Render();
 	if (g_pscene)
 		g_pscene->Render();
-	else if (g_plobby)
-		g_plobby->Render();
 
 	glutSwapBuffers();											// 화면에 출력하기
 }
@@ -129,7 +129,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	case ' ':			// Space를 누르면 게임이 시작된다.
 		if (not g_pscene) {
 			g_pscene = std::make_unique<CScene>(winWidth, winHeight);
-			g_plobby.reset();
+			g_plobby->SetIsLobby(false);
 		}
 		break;
 	}

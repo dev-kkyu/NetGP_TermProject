@@ -9,18 +9,27 @@ CLobby::CLobby()
 
 	GLuint vao = InitBuffer();
 	m_vao = vao;
+
+	isLobby = true;
 }
 
 CLobby::~CLobby()
 {
 }
 
+void CLobby::SetIsLobby(bool isLobby)
+{
+	this->isLobby = isLobby;
+}
+
 void CLobby::Render()
 {
 	glUseProgram(m_shader);
 	glBindVertexArray(m_vao);
-	glBindTexture(GL_TEXTURE_2D, m_tex);
+	glBindTexture(GL_TEXTURE_2D, m_tex[int(!isLobby)]);
 	glDrawArrays(GL_QUADS, 0, 4);
+	if (not isLobby)
+		glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 GLuint CLobby::InitBuffer()
@@ -67,20 +76,25 @@ GLuint CLobby::InitBuffer()
 	glEnableVertexAttribArray(TexLoc);
 
 	// 텍스쳐 로드
-	glGenTextures(1, &m_tex);
-	glBindTexture(GL_TEXTURE_2D, m_tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	int ImageWidth, ImageHeight, numberOfChannel;
-	//stbi_set_flip_vertically_on_load(true); //--- 이미지가 거꾸로 읽힌다면 추가
-	GLubyte* data = CImage::LoadImg("./Resources/Lobby.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
-	if (!data)
-		std::cerr << "image load Error" << std::endl;
-	int texLevel = numberOfChannel == 4 ? GL_RGBA : GL_RGB;
-	glTexImage2D(GL_TEXTURE_2D, 0, numberOfChannel, ImageWidth, ImageHeight, 0, texLevel, GL_UNSIGNED_BYTE, data);
-	CImage::FreeImg(data);
+	glGenTextures(2, m_tex);
+	for (int i = 0; i < 2; ++i) {
+		glBindTexture(GL_TEXTURE_2D, m_tex[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		int ImageWidth, ImageHeight, numberOfChannel;
+		GLubyte* data;
+		if (0 == i)
+			data = CImage::LoadImg("./Resources/Lobby.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		else
+			data = CImage::LoadImg("./Resources/BackGround.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		if (!data)
+			std::cerr << i << ": image load Error" << std::endl;
+		int texLevel = numberOfChannel == 4 ? GL_RGBA : GL_RGB;
+		glTexImage2D(GL_TEXTURE_2D, 0, numberOfChannel, ImageWidth, ImageHeight, 0, texLevel, GL_UNSIGNED_BYTE, data);
+		CImage::FreeImg(data);
+	}
 
 	return VAO;
 }
