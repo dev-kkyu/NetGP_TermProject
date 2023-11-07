@@ -31,6 +31,22 @@ std::array<CPlayer, 3>		g_player;
 void send_sc_ready_packet(char player_id)
 {
 	// 현재 해당 플레이어 레디상태 체크 후 반대로 바꿔서 다시 전송(모든 클라이언트에게)
+	SC_READY_PACKET p;
+	p.size = sizeof(p);
+	p.type = SC_READY;
+	p.playerid = player_id;
+
+	for (int i = 0; i < 3; ++i) {
+		if (g_is_accept[i]) {
+			p.ready = g_is_ready[player_id];
+
+			int retval = send(g_client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
+			if (retval == SOCKET_ERROR) {
+				err_display("send()");
+				//break;	// 차후 고민 필요....
+			}
+		}
+	}
 }
 
 void send_sc_login_packet(char player_id)
@@ -76,8 +92,12 @@ void process_packet(int my_id, char* packet)
 {
 	switch (packet[2]) {
 	case CS_READY: {
+		std::cout << "레디패킷 수신" << std::endl;
 		CS_READY_PACKET* p = reinterpret_cast<CS_READY_PACKET*>(packet);
-
+		g_is_ready[my_id] = not g_is_ready[my_id];
+		for (int i = 0; i < 3; ++i)
+			if (g_is_accept[i])
+				send_sc_ready_packet(my_id);
 	}
 		break;
 	case CS_MAP_OK: {

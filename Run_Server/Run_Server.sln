@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Run_Server", "Run_Server\Ru
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dummy_Client", "Dummy_Client\Dummy_Client.vcxproj", "{6E3B09CC-D895-4B04-9D0B-5B9809A6A0CE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dummy_Client_OpenGL", "Dummy_Client_OpenGL\Dummy_Client_OpenGL.vcxproj", "{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{6E3B09CC-D895-4B04-9D0B-5B9809A6A0CE}.Release|x64.Build.0 = Release|x64
 		{6E3B09CC-D895-4B04-9D0B-5B9809A6A0CE}.Release|x86.ActiveCfg = Release|Win32
 		{6E3B09CC-D895-4B04-9D0B-5B9809A6A0CE}.Release|x86.Build.0 = Release|Win32
+		{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}.Debug|x64.ActiveCfg = Debug|x64
+		{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}.Debug|x64.Build.0 = Debug|x64
+		{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}.Debug|x86.ActiveCfg = Debug|Win32
+		{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}.Debug|x86.Build.0 = Debug|Win32
+		{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}.Release|x64.ActiveCfg = Release|x64
+		{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}.Release|x64.Build.0 = Release|x64
+		{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}.Release|x86.ActiveCfg = Release|Win32
+		{5A1FA7D9-3644-4172-A7D7-6A1A3C92C89E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
