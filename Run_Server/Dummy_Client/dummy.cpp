@@ -21,11 +21,52 @@ public:
 
 // 전역 변수
 float						g_map[100][16];
+SOCKET sock;
 std::array<bool, 3>			g_is_accept;
 std::array<bool, 3>			g_is_ready;
 std::array<CPlayer, 3>		g_player;
 
+void send_cs_ready_packet()
+{
+	CS_READY_PACKET p;
+	p.size = sizeof(p);
+	p.type = CS_READY;
 
+	int retval = send(sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send()");
+		//break;	// 차후 고민 필요....
+	}
+
+}
+
+void send_cs_map_ok_packet()
+{
+	CS_MAP_OK_PACKET p;
+	p.size = sizeof(p);
+	p.type = CS_MAP_OK;
+
+	int retval = send(sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send()");
+		//break;	// 차후 고민 필요....
+	}
+}
+
+void send_cs_key_event_packet(MY_KEY_EVENT key, bool is_on)
+{
+	CS_KEY_EVENT_PACKET p;
+	p.size = sizeof(p);
+	p.type = CS_KEY_EVENT;
+	p.is_on = is_on;
+	p.key = key;
+
+	int retval = send(sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send()");
+		//break;	// 차후 고민 필요....
+	}
+}
 
 // 패킷 처리하는 함수
 void process_packet(char* packet)
@@ -76,7 +117,7 @@ int main(int argc, char* argv[])
 		return 1;
 
 	// 소켓 생성
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET) err_quit("socket()");
 
 	// connect()
