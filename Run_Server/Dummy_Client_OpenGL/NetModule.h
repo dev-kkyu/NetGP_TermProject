@@ -18,14 +18,14 @@ public:
 class CNetModule
 {
 public:
-	SOCKET	sock;
+	SOCKET	m_sock;
 	char	my_id;
 
 	// ¸â¹ö º¯¼ö
-	float						g_map[100][16];
-	std::array<bool, 3>			g_is_accept;
-	std::array<bool, 3>			g_is_ready;
-	std::array<CPlayer, 3>		g_player;
+	float						m_map[100][16];
+	std::array<bool, 3>			m_is_accept;
+	std::array<bool, 3>			m_is_ready;
+	std::array<CPlayer, 3>		m_player;
 
 	void send_cs_ready_packet();
 

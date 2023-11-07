@@ -3,16 +3,18 @@
 #include <memory>
 
 class CMap;
+class CNetModule;
 class CScene
 {
 private:
 	int& w_width;
 	int& w_height;
 
+	std::unique_ptr<CNetModule>& m_NetModule;
 	std::unique_ptr<CMap> m_map;
 
 public:
-	CScene(int& width, int& height);
+	CScene(int& width, int& height, std::unique_ptr<CNetModule>& NetModule);
 	~CScene();
 
 	void Initialize();				//생성될 때 할 일

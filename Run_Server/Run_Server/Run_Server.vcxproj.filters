@@ -18,7 +18,7 @@
     <ClCompile Include="Server.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="net_err_handling.cpp">
+    <ClCompile Include="protocol.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

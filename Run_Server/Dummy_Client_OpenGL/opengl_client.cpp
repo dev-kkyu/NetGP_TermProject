@@ -38,7 +38,7 @@ void main(int argc, char** argv)								//--- 윈도우 출력하고 콜백함수 설정
 	printf("소켓을 연결합니다. ");
 	system("pause");
 	g_NetModule = std::make_unique<CNetModule>();
-	g_t = std::thread{ CNetModule::RecvThread, g_NetModule->sock, std::ref(g_m), std::ref(g_NetModule) };
+	g_t = std::thread{ CNetModule::RecvThread, g_NetModule->m_sock, std::ref(g_m), std::ref(g_NetModule) };
 
 	//--- 윈도우 생성하기
 	glutInit(&argc, argv);										// glut 초기화

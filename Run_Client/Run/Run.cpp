@@ -7,8 +7,9 @@ Run 게임 모작
 #include "Timer.h"
 #include "Scene.h"
 #include "Lobby.h"
+#include "NetModule.h"
 #include <iostream>
-#include <memory>
+#include <mutex>
 
 
 // 콜백함수
@@ -31,11 +32,20 @@ int winHeight = 768;
 
 CTimer g_gameTimer;
 
+std::unique_ptr<CNetModule> g_NetModule;
+std::thread					g_thread;
+std::mutex					g_mutex;
+
 std::unique_ptr<CLobby> g_plobby;
 std::unique_ptr<CScene> g_pscene;
 
 void main(int argc, char** argv)								//--- 윈도우 출력하고 콜백함수 설정 
 {
+	printf("소켓을 연결합니다. ");
+	system("pause");
+	g_NetModule = std::make_unique<CNetModule>(std::ref(g_mutex));
+	g_thread = std::thread{ CNetModule::RecvThread, g_NetModule->m_sock, std::ref(g_mutex), std::ref(g_NetModule) };
+
 	//--- 윈도우 생성하기
 	glutInit(&argc, argv);										// glut 초기화
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);	// 디스플레이 모드 설정
@@ -128,7 +138,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	case ' ':			// Space를 누르면 게임이 시작된다.
 		if (not g_pscene) {
-			g_pscene = std::make_unique<CScene>(winWidth, winHeight);
+			g_pscene = std::make_unique<CScene>(winWidth, winHeight, std::ref(g_NetModule));
 			g_plobby->SetIsLobby(false);
 		}
 		break;

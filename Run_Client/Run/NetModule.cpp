@@ -15,7 +15,35 @@ void CNetModule::send_cs_ready_packet()
 	}
 }
 
-CNetModule::CNetModule() : m_map{}, m_is_accept{}, m_is_ready{}, m_player{}, m_sock{}, my_id{-1}
+void CNetModule::send_cs_map_ok_packet()
+{
+	CS_MAP_OK_PACKET p;
+	p.size = sizeof(p);
+	p.type = CS_MAP_OK;
+
+	int retval = send(m_sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send()");
+		//break;	// 차후 고민 필요....
+	}
+}
+
+void CNetModule::send_cs_key_event_packet(MY_KEY_EVENT key, bool is_on)
+{
+	CS_KEY_EVENT_PACKET p;
+	p.size = sizeof(p);
+	p.type = CS_KEY_EVENT;
+	p.is_on = is_on;
+	p.key = key;
+
+	int retval = send(m_sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send()");
+		//break;	// 차후 고민 필요....
+	}
+}
+
+CNetModule::CNetModule(std::mutex& mutex) : m_map{}, m_is_accept{}, m_is_ready{}, m_player{}, m_sock{}, my_id{ -1 }, m_mutex{ mutex }
 {
 	int retval;
 
@@ -62,29 +90,29 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::unique_ptr<CNe
 				 break;
 	case SC_READY: {
 		SC_READY_PACKET* p = reinterpret_cast<SC_READY_PACKET*>(packet);
-		std::cout << (int)p->playerid << "번 플레이어 준비 상태 : " << std::boolalpha << p->ready << std::endl;
+		std::cout << (int)p->playerid << "번 플레이어 준비 상태 : " << std::boolalpha << p->ready << ", 나는 : " << (int)my_Net->my_id << std::endl;
 		m.lock();
 		my_Net->m_is_accept[p->playerid] = true;
 		my_Net->m_is_ready[p->playerid] = p->ready;
 		m.unlock();
-		for(int i=0;i<3;++i)
-			if (my_Net->m_is_accept[i])
-				std::cout << i << " : " << std::boolalpha << my_Net->m_is_ready[i] << std::endl;
 	}
 				 break;
 	case SC_MAP_DATA: {
 		SC_MAP_DATA_PACKET* p = reinterpret_cast<SC_MAP_DATA_PACKET*>(packet);
 
+		std::cout << "맵 패킷 수신" << std::endl;
 	}
 					break;
 	case SC_POSITION: {
 		SC_POSITION_PACKET* p = reinterpret_cast<SC_POSITION_PACKET*>(packet);
 
+		std::cout << "플레이어 POS 패킷 수신" << std::endl;
 	}
 					break;
 	case SC_GAME_END: {
 		SC_GAME_END_PACKET* p = reinterpret_cast<SC_GAME_END_PACKET*>(packet);
 
+		std::cout << "GAME_END 패킷 수신" << std::endl;
 	}
 					break;
 	default:
@@ -140,4 +168,31 @@ void CNetModule::RecvThread(SOCKET s, std::mutex& m, std::unique_ptr<CNetModule>
 		}
 	}
 	delete[] remain_data;
+}
+
+// 소켓 함수 오류 출력 후 종료
+void err_quit(const char* msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(char*)&lpMsgBuf, 0, NULL);
+	MessageBoxA(NULL, (const char*)lpMsgBuf, msg, MB_ICONERROR);
+	LocalFree(lpMsgBuf);
+	exit(1);
+}
+
+// 소켓 함수 오류 출력
+void err_display(const char* msg)
+{
+	LPVOID lpMsgBuf;
+	FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, WSAGetLastError(),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(char*)&lpMsgBuf, 0, NULL);
+	printf("[%s] %s\n", msg, (char*)lpMsgBuf);
+	LocalFree(lpMsgBuf);
 }

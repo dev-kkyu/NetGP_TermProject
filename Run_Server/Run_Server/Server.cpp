@@ -4,43 +4,51 @@
 #include <thread>
 #include <mutex>
 
-class CPlayer
+class CPlayerManager
 {
 public:
 	PlayerData info;
 
 public:
-	CPlayer() : info{}
+	CPlayerManager() : info{}
 	{
 
 	}
-	~CPlayer() {}
+	~CPlayerManager() {}
 };
 
 
 // 전역변수
-std::array<SOCKET, 3>		g_client_sockets;
-std::array<std::thread, 3>	g_client_threads;
-std::mutex					g_mutex;
-float						g_map[100][16];
-std::array<bool, 3>			g_is_accept;
-std::array<bool, 3>			g_is_ready;
-std::array<CPlayer, 3>		g_player;
+std::array<SOCKET, 3>			g_client_sockets;
+std::array<std::thread, 3>		g_client_threads;
+std::mutex						g_mutex;
+float							g_map[100][16];
+std::array<bool, 3>				g_is_accept;
+std::array<bool, 3>				g_is_ready;
+std::array<CPlayerManager, 3>	g_player;
 
 // 송신함수
 void send_sc_ready_packet(char player_id)
 {
-	// 현재 해당 플레이어 레디상태 체크 후 반대로 바꿔서 다시 전송(모든 클라이언트에게)
+	// 인자로 받은 플레이어의 레디 상태를 모두에게 전송
 	SC_READY_PACKET p;
 	p.size = sizeof(p);
 	p.type = SC_READY;
 	p.playerid = player_id;
 
-	for (int i = 0; i < 3; ++i) {
-		if (g_is_accept[i]) {
-			p.ready = g_is_ready[player_id];
+	// 전역 데이터 복사
+	g_mutex.lock();
+	std::array<SOCKET, 3>	client_sockets = g_client_sockets;
+	std::array<bool, 3>		is_accept = g_is_accept;
+	std::array<bool, 3>		is_ready = g_is_ready;
+	g_mutex.unlock();
 
-			int retval = send(g_client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
+	p.ready = is_ready[player_id];
+
+	// 모든 클라이언트에게 전송
+	for (int i = 0; i < 3; ++i) {
+		if (is_accept[i]) {
+			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
 				//break;	// 차후 고민 필요....
@@ -52,38 +60,22 @@ void send_sc_ready_packet(char player_id)
 void send_sc_login_packet(char player_id)
 {
 	// 로그인 패킷 생성후 플레이어번호 할당및 해당 플레이어에게 전송
-	{
-		SC_LOGIN_PACKET p;
-		p.size = sizeof(p);
-		p.type = SC_LOGIN;
-		p.playerid = player_id;
 
-		int retval = send(g_client_sockets[player_id], reinterpret_cast<char*>(&p), sizeof(p), 0);
-		if (retval == SOCKET_ERROR) {
-			err_display("send()");
-			//break;	// 차후 고민 필요....
-		}
+	SC_LOGIN_PACKET p;
+	p.size = sizeof(p);
+	p.type = SC_LOGIN;
+	p.playerid = player_id;
+
+	g_mutex.lock();
+	SOCKET sock = g_client_sockets[player_id];
+	g_mutex.unlock();
+
+	int retval = send(sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
+	if (retval == SOCKET_ERROR) {
+		err_display("send()");
+		//break;	// 차후 고민 필요....
 	}
 
-
-	// 나를 제외한 다른 클라이언트에게 나의 준비상태를 알림으로써 나의 로그인을 알림
-	for (int j = 0; j < 3; ++j) {
-		if (j == player_id)
-			continue;
-		if (g_is_accept[j]) {
-			SC_READY_PACKET p;
-			p.size = sizeof(p);
-			p.type = SC_READY;
-			p.playerid = player_id;
-			p.ready = g_is_ready[player_id];
-
-			int retval = send(g_client_sockets[j], reinterpret_cast<char*>(&p), sizeof(p), 0);
-			if (retval == SOCKET_ERROR) {
-				err_display("send()");
-				//break;	// 차후 고민 필요....
-			}
-		}
-	}
 }
 
 
@@ -92,12 +84,12 @@ void process_packet(int my_id, char* packet)
 {
 	switch (packet[2]) {
 	case CS_READY: {
-		std::cout << "레디패킷 수신" << std::endl;
+		std::cout << my_id << ": player ready packet 수신" << std::endl;
 		CS_READY_PACKET* p = reinterpret_cast<CS_READY_PACKET*>(packet);
-		g_is_ready[my_id] = not g_is_ready[my_id];
-		for (int i = 0; i < 3; ++i)
-			if (g_is_accept[i])
-				send_sc_ready_packet(my_id);
+		g_mutex.lock();
+		g_is_ready[my_id] = not g_is_ready[my_id];	// 해당하는 플레이어의 준비 상태를 반대로 바꿔줌
+		g_mutex.unlock();
+		send_sc_ready_packet(my_id);				// 접속한 모든 플레이어에게 전송
 	}
 		break;
 	case CS_MAP_OK: {
@@ -107,7 +99,25 @@ void process_packet(int my_id, char* packet)
 		break;
 	case CS_KEY_EVENT: {
 		CS_KEY_EVENT_PACKET* p = reinterpret_cast<CS_KEY_EVENT_PACKET*>(packet);
-
+		switch (p->key)
+		{
+		case MY_KEY_EVENT::KEY_SPACE:
+			printf("%d: player key packet: space", my_id);
+			break;
+		case MY_KEY_EVENT::KEY_LEFT:
+			printf("%d: player key packet: left", my_id);
+			break;
+		case MY_KEY_EVENT::KEY_RIGHT:
+			printf("%d: player key packet: right", my_id);
+			break;
+		default:
+			printf("%d: player key packet: err", my_id);
+			break;
+		}
+		if (p->is_on)
+			printf(" 눌림\n");
+		else
+			printf(" 떼짐\n");
 	}
 		break;
 	default:
@@ -236,20 +246,29 @@ int main(int argc, char *argv[])
 				addr, ntohs(clientaddr.sin_port));
 
 
+			{	// 로그인 처리
+				g_mutex.lock();
+				g_is_accept[i] = true;							// 전역데이터 변경
+				g_client_sockets[i] = client_sock;				// ''
+				g_mutex.unlock();
 
-			{	// 보호된 공간	// 로그인 처리
-				std::lock_guard<std::mutex> l{ g_mutex };
-				g_is_accept[i] = true;
-				g_client_sockets[i] = client_sock;
 				send_sc_login_packet(i);	// id 할당
-				// 접속된 모든 클라이언트의 상태를 전송
+				send_sc_ready_packet(i);	// 다른 접속된 모든 플레이어들에게 나의 준비상태(false)를 알림으로써, 나의 존재를 알린다.
+				
+				// 나에게 현재 접속된 모든 클라이언트의 상태를 나를 제외하고 전송
+				// 나에게 나는 방금 전송했고, 나에게 다른 클라이언트의 준비상태를 알림으로써 다른 클라이언트가 존재함을 알린다.
 				for (int j = 0; j < 3; ++j) {
+					if (i == j)
+						continue;
+					g_mutex.lock();
 					if (g_is_accept[j]) {
 						SC_READY_PACKET p;
+						p.ready = g_is_ready[j];
+						g_mutex.unlock();
+
+						p.playerid = j;
 						p.size = sizeof(p);
 						p.type = SC_READY;
-						p.playerid = j;
-						p.ready = g_is_ready[j];
 
 						int retval = send(client_sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
 						if (retval == SOCKET_ERROR) {
@@ -257,6 +276,7 @@ int main(int argc, char *argv[])
 							//break;	// 차후 고민 필요....
 						}
 					}
+					else g_mutex.unlock();
 				}
 				g_client_threads[i] = std::thread{ RecvThread, i };
 			}
@@ -266,7 +286,7 @@ int main(int argc, char *argv[])
 
 		// 게임 종료 시, 클라이언트의 종료를 기다림
 		for (auto& t : g_client_threads)
-			t.join();		
+			t.join();
 	}
 
 	// 소켓 닫기

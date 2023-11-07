@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetModule.cpp" />
-    <ClCompile Include="net_err_handling.cpp" />
+    <ClCompile Include="protocol.cpp" />
     <ClCompile Include="opengl_client.cpp" />
   </ItemGroup>
   <ItemGroup>

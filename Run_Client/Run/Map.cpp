@@ -1,11 +1,13 @@
 #include "Map.h"
 #include "Player.h"
+#include "NetModule.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 const int CMap::MAX_Layer = 30;
-CMap::CMap(std::string filename, int& winWidth, int& winHeight) : w_width{ winWidth }, w_height{ winHeight }
+CMap::CMap(std::string filename, int& winWidth, int& winHeight, std::unique_ptr<CNetModule>& NetModule)
+	: w_width{ winWidth }, w_height{ winHeight }, m_NetModule{ NetModule }
 {
 	std::ifstream in{ filename };
 	if (!in) {
@@ -360,12 +362,39 @@ GLuint CMap::InitBuffer()
 	return VAO;
 }
 
+void CMap::MouseEvent(int button, int state, int x, int y)
+{
+	static const int WHEEL_UP = 3, WHEEL_DOWN = 4;
+	switch (state) {
+	case GLUT_DOWN:
+		switch (button) {
+		case GLUT_LEFT_BUTTON:
+			m_NetModule->send_cs_ready_packet();
+			break;
+		case GLUT_RIGHT_BUTTON:
+			break;
+		case GLUT_MIDDLE_BUTTON:
+			break;
+		case WHEEL_DOWN:
+			break;
+		case WHEEL_UP:
+			break;
+		}
+		break;
+	case GLUT_UP:
+		break;
+	default:
+		break;
+	}
+}
+
 void CMap::KeyboardEvent(int state, unsigned char key)
 {
 	switch (state) {
 	case GLUT_DOWN:
 		switch (key) {
 		case ' ':
+			m_NetModule->send_cs_key_event_packet(MY_KEY_EVENT::KEY_SPACE, true);
 			isSpace = true;
 			break;
 		}
@@ -374,6 +403,7 @@ void CMap::KeyboardEvent(int state, unsigned char key)
 		switch (key)
 		{
 		case ' ':
+			m_NetModule->send_cs_key_event_packet(MY_KEY_EVENT::KEY_SPACE, false);
 			isSpace = false;
 			break;
 		}
@@ -387,9 +417,11 @@ void CMap::SpecialKeyEvent(int state, int key)
 	case GLUT_DOWN:
 		switch (key) {
 		case GLUT_KEY_LEFT:
+			m_NetModule->send_cs_key_event_packet(MY_KEY_EVENT::KEY_LEFT, true);
 			isLeft = true;
 			break;
 		case GLUT_KEY_RIGHT:
+			m_NetModule->send_cs_key_event_packet(MY_KEY_EVENT::KEY_RIGHT, true);
 			isRight = true;
 			break;
 		}
@@ -397,9 +429,11 @@ void CMap::SpecialKeyEvent(int state, int key)
 	case GLUT_UP:
 		switch (key) {
 		case GLUT_KEY_LEFT:
+			m_NetModule->send_cs_key_event_packet(MY_KEY_EVENT::KEY_LEFT, false);
 			isLeft = false;
 			break;
 		case GLUT_KEY_RIGHT:
+			m_NetModule->send_cs_key_event_packet(MY_KEY_EVENT::KEY_RIGHT, false);
 			isRight = false;
 			break;
 		}

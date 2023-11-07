@@ -25,6 +25,9 @@
     <Filter Include="GameObject\Player">
       <UniqueIdentifier>{831eefe4-7cd8-4746-985f-35fe5e28405d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NetModule">
+      <UniqueIdentifier>{f4c50d6d-88f0-4381-a685-b28415203678}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Run.cpp">
@@ -53,6 +56,9 @@
     </ClCompile>
     <ClCompile Include="Image.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="NetModule.cpp">
+      <Filter>NetModule</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +105,9 @@
     </ClInclude>
     <ClInclude Include="Image.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="NetModule.h">
+      <Filter>NetModule</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

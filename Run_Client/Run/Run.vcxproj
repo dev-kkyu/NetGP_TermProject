@@ -135,6 +135,7 @@
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Lobby.cpp" />
     <ClCompile Include="Map.cpp" />
+    <ClCompile Include="NetModule.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Run.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -159,6 +160,7 @@
     <ClInclude Include="Image.h" />
     <ClInclude Include="Lobby.h" />
     <ClInclude Include="Map.h" />
+    <ClInclude Include="NetModule.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="stdafx.h" />
