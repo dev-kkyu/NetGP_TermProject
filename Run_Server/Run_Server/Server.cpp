@@ -102,6 +102,32 @@ void send_sc_map_data_packet()
 	}
 }
 
+void send_sc_position_packet()
+{
+	SC_POSITION_PACKET p;
+	p.size = sizeof(p);
+	p.type = SC_POSITION;
+
+	// 전역 데이터 복사
+	g_mutex.lock();
+	std::array<SOCKET, 3>	client_sockets = g_client_sockets;
+	std::array<bool, 3>		is_accept = g_is_accept;
+	for (int i = 0; i < 3; ++i)
+		memcpy(&p.p_info[i], &g_player[i].info, sizeof(PlayerData));
+	g_mutex.unlock();
+
+	// 모든 클라이언트에게 전송
+	for (int i = 0; i < 3; ++i) {
+		if (is_accept[i]) {
+			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
+			if (retval == SOCKET_ERROR) {
+				err_display("send()");
+				//break;	// 차후 고민 필요....
+			}
+		}
+	}
+}
+
 // 패킷 처리하는 함수
 void process_packet(int my_id, char* packet)
 {
