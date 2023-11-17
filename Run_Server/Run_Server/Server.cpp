@@ -48,6 +48,11 @@ void send_sc_login_packet(char player_id)
 	}
 }
 
+void send_sc_logout_packet(char player_id)
+{
+
+}
+
 void send_sc_ready_packet(char player_id)
 {
 	// 인자로 받은 플레이어의 레디 상태를 모두에게 전송
