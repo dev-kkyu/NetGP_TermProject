@@ -50,7 +50,27 @@ void send_sc_login_packet(char player_id)
 
 void send_sc_logout_packet(char player_id)
 {
+	SC_LOGOUT_PACKET p;
+	p.size = sizeof(p);
+	p.type = SC_LOGOUT;
+	p.playerid = player_id;
 
+	// 전역 데이터 복사
+	g_mutex.lock();
+	std::array<SOCKET, 3>	client_sockets = g_client_sockets;
+	std::array<bool, 3>		is_accept = g_is_accept;
+	g_mutex.unlock();
+
+	// 모든 클라이언트에게 전송
+	for (int i = 0; i < 3; ++i) {
+		if (is_accept[i]) {
+			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
+			if (retval == SOCKET_ERROR) {
+				err_display("send()");
+				//break;	// 차후 고민 필요....
+			}
+		}
+	}
 }
 
 void send_sc_ready_packet(char player_id)
