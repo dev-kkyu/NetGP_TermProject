@@ -8,10 +8,11 @@
 #define BUFSIZE    8192
 
 constexpr char SC_LOGIN = 1;
-constexpr char SC_READY = 2;
-constexpr char SC_MAP_DATA = 3;
-constexpr char SC_POSITION = 4;
-constexpr char SC_GAME_END = 5;
+constexpr char SC_LOGOUT = 2;
+constexpr char SC_READY = 3;
+constexpr char SC_MAP_DATA = 4;
+constexpr char SC_POSITION = 5;
+constexpr char SC_GAME_END = 6;
 
 constexpr char CS_READY = 1;
 constexpr char CS_MAP_OK = 2;
@@ -39,7 +40,16 @@ struct PlayerData
 	float bef_mv_y;
 };
 
+// 클라가 접속시 해당 클라에게 id 할당 (한명에게 보낸다)
 struct SC_LOGIN_PACKET
+{
+	short size;
+	char type;
+	char playerid;
+};
+
+// 클라가 접속 종료시, 남은 클라에게 해당 클라의 접속종료를 알림 (n명에게 보낸다)
+struct SC_LOGOUT_PACKET
 {
 	short size;
 	char type;
