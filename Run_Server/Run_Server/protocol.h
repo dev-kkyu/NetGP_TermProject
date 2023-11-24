@@ -11,8 +11,9 @@ constexpr char SC_LOGIN = 1;
 constexpr char SC_LOGOUT = 2;
 constexpr char SC_READY = 3;
 constexpr char SC_MAP_DATA = 4;
-constexpr char SC_POSITION = 5;
-constexpr char SC_GAME_END = 6;
+constexpr char SC_GAME_START = 5;
+constexpr char SC_POSITION = 6;
+constexpr char SC_GAME_END = 7;
 
 constexpr char CS_READY = 1;
 constexpr char CS_MAP_OK = 2;
@@ -69,6 +70,12 @@ struct SC_MAP_DATA_PACKET
 	short size;
 	char type;
 	float map[100][16];		//map은 100줄 고정....
+};
+
+struct SC_GAME_START_PACKET
+{
+	short size;
+	char type;
 };
 
 struct SC_POSITION_PACKET

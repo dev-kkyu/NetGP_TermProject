@@ -3,6 +3,7 @@
 #include <array>
 #include <thread>
 #include <mutex>
+#include <chrono>
 
 class CPlayerManager
 {
@@ -17,6 +18,28 @@ public:
 	~CPlayerManager() {}
 };
 
+class Timer
+{
+	std::chrono::steady_clock::time_point start_time;
+	std::chrono::steady_clock::time_point end_time[3];
+public:
+	Timer() : start_time{ std::chrono::steady_clock::now() } 
+	{
+		for (auto temp : end_time)
+			temp = start_time;
+	};
+
+	void set_end_now(int client_id)
+	{
+		end_time[client_id] = std::chrono::steady_clock::now();
+	}
+
+	float get_record(int client_id)
+	{
+		auto record = end_time[client_id] - start_time;
+		return record.count() / 1'000'000'000.;
+	}
+};
 
 // 전역변수
 std::array<SOCKET, 3>			g_client_sockets;
@@ -26,6 +49,7 @@ float							g_map[100][16];
 std::array<bool, 3>				g_is_accept;
 std::array<bool, 3>				g_is_ready;
 std::array<CPlayerManager, 3>	g_player;
+std::unique_ptr<Timer> g_timer;
 
 // 송신함수
 void send_sc_login_packet(char player_id)
@@ -127,6 +151,30 @@ void send_sc_map_data_packet()
 	}
 }
 
+void send_sc_game_start_packet()
+{
+	SC_GAME_START_PACKET p;
+	p.size = sizeof(p);
+	p.type = SC_GAME_START;
+
+	// 전역 데이터 복사
+	g_mutex.lock();
+	std::array<SOCKET, 3>	client_sockets = g_client_sockets;
+	std::array<bool, 3>		is_accept = g_is_accept;
+	g_mutex.unlock();
+
+	// 모든 클라이언트에게 전송
+	for (int i = 0; i < 3; ++i) {
+		if (is_accept[i]) {
+			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
+			if (retval == SOCKET_ERROR) {
+				err_display("send()");
+				//break;	// 차후 고민 필요....
+			}
+		}
+	}
+}
+
 void send_sc_position_packet()
 {
 	SC_POSITION_PACKET p;
@@ -158,6 +206,8 @@ void send_sc_game_end_packet()
 	SC_GAME_END_PACKET p;
 	p.size = sizeof(p);
 	p.type = SC_GAME_END;
+	for (int index = 0; index < 3; ++index)
+		p.end_time[index] = g_timer->get_record(index);
 
 	//end_time은 class Timer 가 선언되고나서 작성 할 예정
 
@@ -178,6 +228,7 @@ void send_sc_game_end_packet()
 		}
 	}
 }
+
 // 패킷 처리하는 함수
 void process_packet(int my_id, char* packet)
 {
