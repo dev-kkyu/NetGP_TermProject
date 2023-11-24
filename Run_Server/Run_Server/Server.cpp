@@ -49,7 +49,20 @@ float							g_map[100][16];
 std::array<bool, 3>				g_is_accept;
 std::array<bool, 3>				g_is_ready;
 std::array<CPlayerManager, 3>	g_player;
-std::unique_ptr<Timer> g_timer;
+std::unique_ptr<Timer>			g_timer;
+
+int get_id()
+{
+	g_mutex.lock();
+	for (int i = 0; i < 3; ++i) {
+		if (not g_is_accept[i]) {
+			g_mutex.unlock();
+			return i;
+		}
+	}
+	g_mutex.unlock();
+	return -1;
+}
 
 // 송신함수
 void send_sc_login_packet(char player_id)
@@ -68,7 +81,9 @@ void send_sc_login_packet(char player_id)
 	int retval = send(sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
 	if (retval == SOCKET_ERROR) {
 		err_display("send()");
-		//break;	// 차후 고민 필요....
+		g_mutex.lock();
+		g_is_accept[player_id] = false;
+		g_mutex.unlock();
 	}
 }
 
@@ -91,7 +106,10 @@ void send_sc_logout_packet(char player_id)
 			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
-				//break;	// 차후 고민 필요....
+				g_mutex.lock();
+				g_is_accept[i] = false;
+				g_mutex.unlock();
+				send_sc_logout_packet(i);
 			}
 		}
 	}
@@ -120,7 +138,10 @@ void send_sc_ready_packet(char player_id)
 			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
-				//break;	// 차후 고민 필요....
+				g_mutex.lock();
+				g_is_accept[i] = false;
+				g_mutex.unlock();
+				send_sc_logout_packet(i);
 			}
 		}
 	}
@@ -145,7 +166,10 @@ void send_sc_map_data_packet()
 			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
-				//break;	// 차후 고민 필요....
+				g_mutex.lock();
+				g_is_accept[i] = false;
+				g_mutex.unlock();
+				send_sc_logout_packet(i);
 			}
 		}
 	}
@@ -169,7 +193,10 @@ void send_sc_game_start_packet()
 			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
-				//break;	// 차후 고민 필요....
+				g_mutex.lock();
+				g_is_accept[i] = false;
+				g_mutex.unlock();
+				send_sc_logout_packet(i);
 			}
 		}
 	}
@@ -195,7 +222,10 @@ void send_sc_position_packet()
 			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
-				//break;	// 차후 고민 필요....
+				g_mutex.lock();
+				g_is_accept[i] = false;
+				g_mutex.unlock();
+				send_sc_logout_packet(i);
 			}
 		}
 	}
@@ -223,7 +253,10 @@ void send_sc_game_end_packet()
 			int retval = send(client_sockets[i], reinterpret_cast<char*>(&p), sizeof(p), 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
-				//break;	// 차후 고민 필요....
+				g_mutex.lock();
+				g_is_accept[i] = false;
+				g_mutex.unlock();
+				send_sc_logout_packet(i);
 			}
 		}
 	}
@@ -281,11 +314,15 @@ void RecvThread(int player_id)
 {
 	// 첫 2바이트가 사이즈, 3번째 바이트가 타입
 	// 클라이언트와 데이터 통신
+	g_mutex.lock();
+	SOCKET sock = g_client_sockets[player_id];
+	g_mutex.unlock();
+
 	int remain_size = 0;
 	char* remain_data = new char[BUFSIZE] {};
 	while (true) {
 		char buf[BUFSIZE];
-		int retval = recv(g_client_sockets[player_id], buf, BUFSIZE, 0);
+		int retval = recv(sock, buf, BUFSIZE, 0);
 
 		if (retval == SOCKET_ERROR) {
 			err_display("recv()");
@@ -331,7 +368,7 @@ void RecvThread(int player_id)
 	//inet_ntop(AF_INET, &sock_data.addr.sin_addr, addr, sizeof(addr));
 	//printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
 	//	addr, ntohs(clientaddr.sin_port));
-	closesocket(g_client_sockets[player_id]);
+	closesocket(sock);
 }
 
 
@@ -377,8 +414,10 @@ int main(int argc, char *argv[])
 
 	bool end_flag = false;
 	while (not end_flag) {
-
-		for (int i = 0; i < 3; ++i) {
+		while (true) {
+			int id = get_id();
+			if (id == -1)
+				break;
 			// accept()
 			sockaddr_in clientaddr;
 			int addrlen = sizeof(clientaddr);
@@ -398,17 +437,25 @@ int main(int argc, char *argv[])
 
 			{	// 로그인 처리
 				g_mutex.lock();
-				g_is_accept[i] = true;							// 전역데이터 변경
-				g_client_sockets[i] = client_sock;				// ''
+				g_is_accept[id] = true;							// 전역데이터 변경
+				g_client_sockets[id] = client_sock;				// ''
 				g_mutex.unlock();
 
-				send_sc_login_packet(i);	// id 할당
-				send_sc_ready_packet(i);	// 다른 접속된 모든 플레이어들에게 나의 준비상태(false)를 알림으로써, 나의 존재를 알린다.
+				send_sc_login_packet(id);	// id 할당
+				send_sc_ready_packet(id);	// 다른 접속된 모든 플레이어들에게 나의 준비상태(false)를 알림으로써, 나의 존재를 알린다.
+
+				g_mutex.lock();
+				if (g_is_accept[id] == false) {		// send_sc_login_packet에서 플레이어가 나가버렸으면 초기화
+					g_mutex.unlock();
+					send_sc_logout_packet(id);
+					continue;
+				}
+				g_mutex.unlock();
 				
 				// 나에게 현재 접속된 모든 클라이언트의 상태를 나를 제외하고 전송
 				// 나에게 나는 방금 전송했고, 나에게 다른 클라이언트의 준비상태를 알림으로써 다른 클라이언트가 존재함을 알린다.
 				for (int j = 0; j < 3; ++j) {
-					if (i == j)
+					if (id == j)
 						continue;
 					g_mutex.lock();
 					if (g_is_accept[j]) {
@@ -423,16 +470,21 @@ int main(int argc, char *argv[])
 						int retval = send(client_sock, reinterpret_cast<char*>(&p), sizeof(p), 0);
 						if (retval == SOCKET_ERROR) {
 							err_display("send()");
-							//break;	// 차후 고민 필요....
+							g_mutex.lock();
+							g_is_accept[id] = false;		// 내가 나감
+							g_mutex.unlock();
+							send_sc_logout_packet(id);
+							break;
 						}
 					}
 					else g_mutex.unlock();
 				}
-				g_client_threads[i] = std::thread{ RecvThread, i };
+				g_client_threads[id] = std::thread{ RecvThread, id };
 			}
 		}
 
-		game_loop();
+		if (not end_flag)
+			game_loop();
 
 		// 게임 종료 시, 클라이언트의 종료를 기다림
 		for (auto& t : g_client_threads)

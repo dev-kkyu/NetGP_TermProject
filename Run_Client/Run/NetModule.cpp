@@ -88,6 +88,12 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::unique_ptr<CNe
 		m.unlock();
 	}
 				 break;
+	case SC_LOGOUT: {
+		SC_LOGOUT_PACKET* p = reinterpret_cast<SC_LOGOUT_PACKET*>(packet);
+
+		std::cout << "로그아웃 패킷 수신 - " << (int)p->playerid << "번 플레이어" << std::endl;
+	}
+		break;
 	case SC_READY: {
 		SC_READY_PACKET* p = reinterpret_cast<SC_READY_PACKET*>(packet);
 		std::cout << (int)p->playerid << "번 플레이어 준비 상태 : " << std::boolalpha << p->ready << ", 나는 : " << (int)my_Net->my_id << std::endl;
@@ -103,6 +109,12 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::unique_ptr<CNe
 		std::cout << "맵 패킷 수신" << std::endl;
 	}
 					break;
+	case SC_GAME_START: {
+		SC_GAME_START_PACKET* p = reinterpret_cast<SC_GAME_START_PACKET*>(packet);
+
+		std::cout << "게임 시작 패킷 수신" << std::endl;
+	}
+		break;
 	case SC_POSITION: {
 		SC_POSITION_PACKET* p = reinterpret_cast<SC_POSITION_PACKET*>(packet);
 
