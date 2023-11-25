@@ -44,8 +44,8 @@ void CMap::Initialize()
 	GLuint vao = InitBuffer();
 	SetVao(vao);
 
-	for(int i=0;i<3;++i)
-		m_pplayers[i] = std::make_unique<CPlayer>();
+	for (int i = 0; i < 3; ++i)
+		m_pplayers[i] = std::make_unique<CPlayer>(i);
 }
 
 void CMap::Update(float ElapsedTime)

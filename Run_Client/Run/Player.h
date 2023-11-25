@@ -18,8 +18,10 @@ private:
 	float move_x;
 	float move_y;
 
+	int my_id;
+
 public:
-	CPlayer();
+	CPlayer(int id);
 	virtual ~CPlayer();
 
 	virtual void Initialize() override;					//생성될 때 할 일

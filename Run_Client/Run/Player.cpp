@@ -2,7 +2,7 @@
 #include "Image.h"
 #include <iostream>
 
-CPlayer::CPlayer()
+CPlayer::CPlayer(int id) : my_id{ id }
 {
 	Initialize();
 }
@@ -137,6 +137,7 @@ GLuint CPlayer::InitBuffer()
 	glEnableVertexAttribArray(TexLoc);
 
 	// 텍스쳐 로드
+	std::string folder_name[3]{ "Blue", "Yellow", "Pink" };
 	glGenTextures(4, Textures);
 	for (int i = 0; i < 4; ++i) {
 		glBindTexture(GL_TEXTURE_2D, Textures[i]);
@@ -146,7 +147,7 @@ GLuint CPlayer::InitBuffer()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		int ImageWidth, ImageHeight, numberOfChannel;
 		//stbi_set_flip_vertically_on_load(true); //--- 이미지가 거꾸로 읽힌다면 추가
-		std::string name = "./Resources/" + std::to_string(i + 1) + ".png";
+		std::string name = "./Resources/Character/" + folder_name[my_id] + "/" + std::to_string(i + 1) + ".png";
 		GLubyte* data = CImage::LoadImg(name, &ImageWidth, &ImageHeight, &numberOfChannel, 0);
 		if (!data)
 			std::cerr << "image load Error" << std::endl;
