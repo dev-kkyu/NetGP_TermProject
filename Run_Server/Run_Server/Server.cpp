@@ -310,18 +310,23 @@ void RecvThread(int player_id)
 	SOCKET sock = g_client_sockets[player_id];
 	g_mutex.unlock();
 
+	// 클라이언트 정보 얻기
+	struct sockaddr_in clientaddr;
+	int addrlen = sizeof(clientaddr);
+	char addr[INET_ADDRSTRLEN];
+	getpeername(sock, (struct sockaddr*)&clientaddr, &addrlen);
+	inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+
 	int remain_size = 0;
 	char* remain_data = new char[BUFSIZE] {};
 	while (true) {
 		char buf[BUFSIZE];
 		int retval = recv(sock, buf, BUFSIZE, 0);
 
-		if (retval == SOCKET_ERROR) {
-			err_display("recv()");
-			break;
-		}
-		else if (retval == 0) {
+		if (retval <= 0) {
 			std::cout << player_id << ": 클라이언트 종료" << std::endl;
+			if (retval == SOCKET_ERROR)
+				err_display("recv()");
 			break;
 		}
 
@@ -356,10 +361,12 @@ void RecvThread(int player_id)
 	delete[] remain_data;
 
 	// 소켓 닫기
-	//char addr[INET_ADDRSTRLEN];
-	//inet_ntop(AF_INET, &sock_data.addr.sin_addr, addr, sizeof(addr));
-	//printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
-	//	addr, ntohs(clientaddr.sin_port));
+	g_mutex.lock();
+	g_is_accept[player_id] = false;
+	g_mutex.unlock();
+	send_sc_logout_packet(player_id);
+	printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+		addr, ntohs(clientaddr.sin_port));
 	closesocket(sock);
 }
 
