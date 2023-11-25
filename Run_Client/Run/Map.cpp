@@ -146,10 +146,12 @@ void CMap::Render()
 			glDrawArrays(GL_QUADS, 0, 64);
 		}
 
+		glDisable(GL_DEPTH_TEST);
 		for (int i = 0; i < 3; ++i) {
 			if (m_pplayers[i])
 				m_pplayers[i]->Render();
 		}
+		glEnable(GL_DEPTH_TEST);
 	}
 }
 
