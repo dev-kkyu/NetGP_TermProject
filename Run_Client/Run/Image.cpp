@@ -2,9 +2,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "OpenGL/stb_image.h"
 
-unsigned char* CImage::LoadImg(std::string filename, int* x, int* y, int* comp, int req_comp)
+unsigned char* CImage::LoadImg(std::string filename, int* x, int* y, int* channels_in_file, int desired_channels)
 {
-	return stbi_load(filename.c_str(), x, y, comp, req_comp);
+	return stbi_load(filename.c_str(), x, y, channels_in_file, desired_channels);
 }
 
 void CImage::FreeImg(void* data)
