@@ -1,32 +1,22 @@
 #include "protocol.h"	// ws2tcpip.h	iosteram
 
+#include "PlayerManager.h"
+#include "Timer.h"
+
 #include <array>
 #include <thread>
 #include <mutex>
 #include <chrono>
 
-class CPlayerManager
-{
-public:
-	PlayerData info;
-
-public:
-	CPlayerManager() : info{}
-	{
-
-	}
-	~CPlayerManager() {}
-};
-
-class Timer
+class CRecordTimer
 {
 	std::chrono::steady_clock::time_point start_time;
 	std::chrono::steady_clock::time_point end_time[3];
 public:
-	Timer() : start_time{ std::chrono::steady_clock::now() } 
+	CRecordTimer() : start_time{ std::chrono::steady_clock::now() }
 	{
-		for (auto temp : end_time)
-			temp = start_time;
+		for (auto& time : end_time)
+			time = start_time;
 	};
 
 	void set_end_now(int client_id)
@@ -49,7 +39,9 @@ float							g_map[100][16];
 std::array<bool, 3>				g_is_accept;
 std::array<bool, 3>				g_is_ready;
 std::array<CPlayerManager, 3>	g_player;
-std::unique_ptr<Timer>			g_timer;
+std::unique_ptr<CRecordTimer>	g_recordTimer;
+
+CTimer							g_gameTimer;
 
 int get_id()
 {
@@ -237,7 +229,7 @@ void send_sc_game_end_packet()
 	p.size = sizeof(p);
 	p.type = SC_GAME_END;
 	for (int index = 0; index < 3; ++index)
-		p.end_time[index] = g_timer->get_record(index);
+		p.end_time[index] = g_recordTimer->get_record(index);
 
 	//end_time은 class Timer 가 선언되고나서 작성 할 예정
 
@@ -376,8 +368,9 @@ void RecvThread(int player_id)
 void game_loop()
 {
 	while (true) {
+		float elapsedTime = g_gameTimer.Tick(1);	// 초당 1번
+
 		std::cout << "실행중..." << std::endl;
-		std::this_thread::sleep_for(std::chrono::milliseconds{ 1000 });
 	}
 }
 
@@ -479,7 +472,10 @@ int main(int argc, char *argv[])
 					}
 					else g_mutex.unlock();
 				}
-				g_client_threads[id] = std::thread{ RecvThread, id };
+				g_mutex.lock();
+				if (g_is_accept[id] == true)
+					g_client_threads[id] = std::thread{ RecvThread, id };
+				g_mutex.unlock();
 			}
 		}
 
