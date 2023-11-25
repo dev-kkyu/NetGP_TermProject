@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 const int CMap::MAX_Layer = 30;
 CMap::CMap(std::string filename, int& winWidth, int& winHeight, std::shared_ptr<CNetModule> NetModule)
@@ -81,6 +82,10 @@ void CMap::Update(float ElapsedTime)
 				m_NetModule->m_mutex.lock();
 				m_pplayers[i]->SetMoveX(m_NetModule->m_player[i].info.x);
 				m_pplayers[i]->SetMoveY(m_NetModule->m_player[i].info.y);
+				if (i != id) {
+					float move_z = m_NetModule->m_player[id].info.map_index + m_NetModule->m_player[id].info.z - m_NetModule->m_player[i].info.map_index - m_NetModule->m_player[i].info.z;
+					m_pplayers[i]->SetMoveZ(move_z);
+				}
 				m_pplayers[i]->SetWalk(m_NetModule->m_player[i].info.is_walk);
 				m_NetModule->m_mutex.unlock();
 				m_pplayers[i]->Update(ElapsedTime);
@@ -146,10 +151,16 @@ void CMap::Render()
 			glDrawArrays(GL_QUADS, 0, 64);
 		}
 
+		int idxs[3]{ 0, 1, 2 };
+		m_NetModule->m_mutex.lock();
+		// 투명한 것을 그리므로 정렬해서 그린다 (작을수록 먼 플레이어이므로 내림차순)
+		std::sort(idxs, idxs + 3, [&](const int& a, const int& b) {return m_NetModule->m_player[a].info.map_index + m_NetModule->m_player[a].info.z
+					> m_NetModule->m_player[b].info.map_index + m_NetModule->m_player[b].info.z; });
+		m_NetModule->m_mutex.unlock();
 		glDisable(GL_DEPTH_TEST);
 		for (int i = 0; i < 3; ++i) {
-			if (m_pplayers[i])
-				m_pplayers[i]->Render();
+			if (m_pplayers[idxs[i]])
+				m_pplayers[idxs[i]]->Render();
 		}
 		glEnable(GL_DEPTH_TEST);
 	}

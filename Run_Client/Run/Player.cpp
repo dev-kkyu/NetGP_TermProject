@@ -28,6 +28,7 @@ void CPlayer::Initialize()
 
 	move_x = 0.f;
 	move_y = 0.f;
+	move_z = 0.f;
 }
 
 void CPlayer::Update(float ElapsedTime)
@@ -67,7 +68,7 @@ void CPlayer::Render()
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projMat));
 
 		glm::mat4 scale = glm::scale(glm::mat4(1.f), glm::vec3(0.3f, 0.3f, 1.f));
-		modelMat = glm::translate(glm::mat4(1.f), glm::vec3(move_x, -1.7f + move_y, -1.f)) * scale;
+		modelMat = glm::translate(glm::mat4(1.f), glm::vec3(move_x, -1.7f + move_y, -1.f + move_z)) * scale;
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMat));
 
 		glBindVertexArray(m_vao);
@@ -172,4 +173,9 @@ void CPlayer::SetMoveX(float move_x)
 void CPlayer::SetMoveY(float move_y)
 {
 	this->move_y = move_y;
+}
+
+void CPlayer::SetMoveZ(float move_z)
+{
+	this->move_z = move_z;
 }

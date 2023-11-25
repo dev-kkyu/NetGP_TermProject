@@ -17,6 +17,7 @@ private:
 
 	float move_x;
 	float move_y;
+	float move_z;
 
 	int my_id;
 
@@ -39,5 +40,6 @@ public:
 
 	void SetMoveX(float move_x);
 	void SetMoveY(float move_y);
+	void SetMoveZ(float move_z);
 };
 
