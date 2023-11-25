@@ -3,6 +3,8 @@
 #include <array>
 #include <mutex>
 
+class CScene;
+
 class CPlayerManager
 {
 public:
@@ -23,6 +25,7 @@ public:
 	char							my_id;
 
 	std::mutex&						m_mutex;
+	std::shared_ptr<CScene>			m_pscene;
 
 	// ¸â¹ö º¯¼ö
 	float							m_map[100][16];
@@ -34,12 +37,14 @@ public:
 	CNetModule(std::mutex& mutex);
 	~CNetModule();
 
+	void SetScene(std::shared_ptr<CScene> pscene);
+
 	void send_cs_ready_packet();
 	void send_cs_map_ok_packet();
 	void send_cs_key_event_packet(MY_KEY_EVENT key, bool is_on);
 
 public:
-	static void process_packet(char* packet, std::mutex& m, std::unique_ptr<CNetModule>& my_Net);
-	static void RecvThread(SOCKET s, std::mutex& m, std::unique_ptr<CNetModule>& my_Net);
+	static void process_packet(char* packet, std::mutex& m, std::shared_ptr<CNetModule> my_Net);
+	static void RecvThread(SOCKET s, std::mutex& m, std::shared_ptr<CNetModule> my_Net);
 };
 

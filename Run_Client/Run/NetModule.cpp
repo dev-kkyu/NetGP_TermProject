@@ -1,4 +1,5 @@
 #include "NetModule.h"
+#include "Scene.h"
 
 char* SERVERIP = (char*)"127.0.0.1";
 
@@ -77,7 +78,12 @@ CNetModule::~CNetModule()
 	WSACleanup();
 }
 
-void CNetModule::process_packet(char* packet, std::mutex& m, std::unique_ptr<CNetModule>& my_Net)
+void CNetModule::SetScene(std::shared_ptr<CScene> pscene)
+{
+	m_pscene = pscene;
+}
+
+void CNetModule::process_packet(char* packet, std::mutex& m, std::shared_ptr<CNetModule> my_Net)
 {
 	switch (packet[2]) {
 	case SC_LOGIN: {
@@ -85,12 +91,18 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::unique_ptr<CNe
 		std::cout << (int)p->playerid << "번으로 할당..." << std::endl;
 		m.lock();
 		my_Net->my_id = p->playerid;
+		if (my_Net->m_pscene)
+			my_Net->m_pscene->SetID(p->playerid);
 		m.unlock();
 	}
 				 break;
 	case SC_LOGOUT: {
 		SC_LOGOUT_PACKET* p = reinterpret_cast<SC_LOGOUT_PACKET*>(packet);
-
+		m.lock();
+		my_Net->m_is_accept[p->playerid] = false;
+		if (my_Net->m_pscene)
+			my_Net->m_pscene->SetIsReady(p->playerid, false);
+		m.unlock();
 		std::cout << "로그아웃 패킷 수신 - " << (int)p->playerid << "번 플레이어" << std::endl;
 	}
 		break;
@@ -100,6 +112,8 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::unique_ptr<CNe
 		m.lock();
 		my_Net->m_is_accept[p->playerid] = true;
 		my_Net->m_is_ready[p->playerid] = p->ready;
+		if (my_Net->m_pscene)
+			my_Net->m_pscene->SetIsReady(p->playerid, p->ready);
 		m.unlock();
 	}
 				 break;
@@ -113,6 +127,10 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::unique_ptr<CNe
 		SC_GAME_START_PACKET* p = reinterpret_cast<SC_GAME_START_PACKET*>(packet);
 
 		std::cout << "게임 시작 패킷 수신" << std::endl;
+		m.lock();
+		if (my_Net->m_pscene)
+			my_Net->m_pscene->SetGameStart();
+		m.unlock();
 	}
 		break;
 	case SC_POSITION: {
@@ -133,7 +151,7 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::unique_ptr<CNe
 	}
 }
 
-void CNetModule::RecvThread(SOCKET s, std::mutex& m, std::unique_ptr<CNetModule>& my_Net)
+void CNetModule::RecvThread(SOCKET s, std::mutex& m, std::shared_ptr<CNetModule> my_Net)
 {
 	int remain_size = 0;
 	char* remain_data = new char[BUFSIZE] {};

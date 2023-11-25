@@ -6,15 +6,17 @@ class CLobby
 private:
 	GLuint m_shader;
 	GLuint m_vao;
-	GLuint m_tex[2];
+	GLuint m_tex[4];
 
-	bool isLobby;
+public:
+	char my_id;
+	bool is_lobby;
+	bool is_ready[3];
 
 public:
 	CLobby();
 	~CLobby();
 
-	void SetIsLobby(bool isLobby);
 	void Render();
 
 	GLuint InitBuffer();

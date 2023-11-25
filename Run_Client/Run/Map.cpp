@@ -6,7 +6,7 @@
 #include <sstream>
 
 const int CMap::MAX_Layer = 30;
-CMap::CMap(std::string filename, int& winWidth, int& winHeight, std::unique_ptr<CNetModule>& NetModule)
+CMap::CMap(std::string filename, int& winWidth, int& winHeight, std::shared_ptr<CNetModule> NetModule)
 	: w_width{ winWidth }, w_height{ winHeight }, m_NetModule{ NetModule }
 {
 	std::ifstream in{ filename };
@@ -360,32 +360,6 @@ GLuint CMap::InitBuffer()
 	glEnableVertexAttribArray(AttribPosLoc);										// Attribute È°¼ºÈ­
 
 	return VAO;
-}
-
-void CMap::MouseEvent(int button, int state, int x, int y)
-{
-	static const int WHEEL_UP = 3, WHEEL_DOWN = 4;
-	switch (state) {
-	case GLUT_DOWN:
-		switch (button) {
-		case GLUT_LEFT_BUTTON:
-			m_NetModule->send_cs_ready_packet();
-			break;
-		case GLUT_RIGHT_BUTTON:
-			break;
-		case GLUT_MIDDLE_BUTTON:
-			break;
-		case WHEEL_DOWN:
-			break;
-		case WHEEL_UP:
-			break;
-		}
-		break;
-	case GLUT_UP:
-		break;
-	default:
-		break;
-	}
 }
 
 void CMap::KeyboardEvent(int state, unsigned char key)

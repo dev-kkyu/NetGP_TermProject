@@ -32,19 +32,18 @@ int winHeight = 768;
 
 CTimer g_gameTimer;
 
-std::unique_ptr<CNetModule> g_NetModule;
+std::shared_ptr<CNetModule> g_NetModule;
 std::thread					g_thread;
 std::mutex					g_mutex;
 
-std::unique_ptr<CLobby> g_plobby;
-std::unique_ptr<CScene> g_pscene;
+std::shared_ptr<CScene> g_pscene;
 
 void main(int argc, char** argv)								//--- 윈도우 출력하고 콜백함수 설정 
 {
 	printf("소켓을 연결합니다. ");
 	system("pause");
-	g_NetModule = std::make_unique<CNetModule>(std::ref(g_mutex));
-	g_thread = std::thread{ CNetModule::RecvThread, g_NetModule->m_sock, std::ref(g_mutex), std::ref(g_NetModule) };
+	g_NetModule = std::make_shared<CNetModule>(std::ref(g_mutex));
+	g_thread = std::thread{ CNetModule::RecvThread, g_NetModule->m_sock, std::ref(g_mutex), g_NetModule };
 
 	//--- 윈도우 생성하기
 	glutInit(&argc, argv);										// glut 초기화
@@ -70,7 +69,8 @@ void main(int argc, char** argv)								//--- 윈도우 출력하고 콜백함수 설정
 		std::cout << "GLEW 3.0 not supported\n";
 	}
 
-	g_plobby = std::make_unique<CLobby>();
+	g_pscene = std::make_shared<CScene>(winWidth, winHeight, g_NetModule);
+	g_NetModule->SetScene(g_pscene);
 
 	//	콜백함수 설정
 	glutDisplayFunc(Display);									// 출력 함수의 지정
@@ -112,8 +112,6 @@ GLvoid Display(GLvoid)
 
 	// 그리기 부분 구현: 그리기 관련 부분이 여기에 포함된다.
 
-	if (g_plobby)
-		g_plobby->Render();
 	if (g_pscene)
 		g_pscene->Render();
 
@@ -135,12 +133,6 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	switch (key) {
 	case 27:			// ESC Key
 		glutLeaveMainLoop();
-		break;
-	case ' ':			// Space를 누르면 게임이 시작된다.
-		if (not g_pscene) {
-			g_pscene = std::make_unique<CScene>(winWidth, winHeight, std::ref(g_NetModule));
-			g_plobby->SetIsLobby(false);
-		}
 		break;
 	}
 }

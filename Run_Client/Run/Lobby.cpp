@@ -2,7 +2,7 @@
 #include "Image.h"
 #include <iostream>
 
-CLobby::CLobby()
+CLobby::CLobby() : is_ready{}
 {
 	GLuint shader = CreateShaderProgram("./Shader/LobbyShader.vert", "./Shader/LobbyShader.frag");
 	m_shader = shader;
@@ -10,26 +10,43 @@ CLobby::CLobby()
 	GLuint vao = InitBuffer();
 	m_vao = vao;
 
-	isLobby = true;
+	is_lobby = true;
+	my_id = -1;
 }
 
 CLobby::~CLobby()
 {
 }
 
-void CLobby::SetIsLobby(bool isLobby)
-{
-	this->isLobby = isLobby;
-}
-
 void CLobby::Render()
 {
 	glUseProgram(m_shader);
 	glBindVertexArray(m_vao);
-	glBindTexture(GL_TEXTURE_2D, m_tex[int(!isLobby)]);
-	glDrawArrays(GL_QUADS, 0, 4);
-	if (not isLobby)
+
+	GLint transLoc = glGetUniformLocation(m_shader, "transformMat");
+	if (transLoc < 0)
+		printf("lobby trans 찾지못함\n");
+	if (is_lobby) {
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
+		glBindTexture(GL_TEXTURE_2D, m_tex[0]);
+		glDrawArrays(GL_QUADS, 0, 4);
 		glClear(GL_DEPTH_BUFFER_BIT);
+		for (int i = 0; i < 3; ++i) {
+			auto mat = glm::translate(glm::mat4(1.f), glm::vec3(0.75f, 0.75f - (i * 0.25), 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.25f, 0.05f, 1.f));
+			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(mat));
+			if (is_ready[i])
+				glBindTexture(GL_TEXTURE_2D, m_tex[3]);
+			else
+				glBindTexture(GL_TEXTURE_2D, m_tex[2]);
+			glDrawArrays(GL_QUADS, 0, 4);
+		}
+	}
+	else {
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
+		glBindTexture(GL_TEXTURE_2D, m_tex[1]);
+		glDrawArrays(GL_QUADS, 0, 4);
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
 }
 
 GLuint CLobby::InitBuffer()
@@ -76,8 +93,8 @@ GLuint CLobby::InitBuffer()
 	glEnableVertexAttribArray(TexLoc);
 
 	// 텍스쳐 로드
-	glGenTextures(2, m_tex);
-	for (int i = 0; i < 2; ++i) {
+	glGenTextures(4, m_tex);
+	for (int i = 0; i < 4; ++i) {
 		glBindTexture(GL_TEXTURE_2D, m_tex[i]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -86,9 +103,13 @@ GLuint CLobby::InitBuffer()
 		int ImageWidth, ImageHeight, numberOfChannel;
 		GLubyte* data;
 		if (0 == i)
-			data = CImage::LoadImg("./Resources/Lobby.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
-		else
+			data = CImage::LoadImg("./Resources/Lobby/Lobby.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		else if (1 == i)
 			data = CImage::LoadImg("./Resources/BackGround.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		else if (2 == i)
+			data = CImage::LoadImg("./Resources/Lobby/ready_off.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		else
+			data = CImage::LoadImg("./Resources/Lobby/ready_on.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
 		if (!data)
 			std::cerr << i << ": image load Error" << std::endl;
 		int texLevel = numberOfChannel == 4 ? GL_RGBA : GL_RGB;

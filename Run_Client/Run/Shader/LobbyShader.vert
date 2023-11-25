@@ -5,8 +5,10 @@ in vec2 vTexCoord;	// 텍스처 UV 좌표
 
 out vec2 TexCoord;	// Fragment Shader로 넘기는 좌표
 
+uniform mat4 transformMat;
+
 void main()
 {
-	gl_Position = vec4(vPos, 1.0);
+	gl_Position = transformMat * vec4(vPos, 1.0);
 	TexCoord = vTexCoord;
 }

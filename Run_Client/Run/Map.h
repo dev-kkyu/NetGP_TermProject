@@ -10,7 +10,7 @@ class CMap : public CGameObject
 private:
 	static const int MAX_Layer;
 
-	std::unique_ptr<CNetModule>& m_NetModule;
+	std::shared_ptr<CNetModule> m_NetModule;
 
 	int& w_width;
 	int& w_height;
@@ -43,7 +43,7 @@ private:
 	float bef_mv_y;
 
 public:
-	CMap(std::string filename, int& winWidth, int& winHeight, std::unique_ptr<CNetModule>& NetModule);
+	CMap(std::string filename, int& winWidth, int& winHeight, std::shared_ptr<CNetModule> NetModule);
 	virtual ~CMap();
 
 	virtual void Initialize() override;					//생성될 때 할 일
@@ -54,7 +54,6 @@ public:
 
 	GLuint InitBuffer();
 
-	void MouseEvent(int button, int state, int x, int y);
 	void KeyboardEvent(int state, unsigned char key);
 	void SpecialKeyEvent(int state, int key);
 
