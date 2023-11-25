@@ -1,5 +1,6 @@
 #pragma once
 #include "GameObject.h"
+#include <array>
 #include <vector>
 #include <memory>
 
@@ -16,31 +17,7 @@ private:
 	int& w_height;
 	std::vector<glm::mat4> map_data;
 
-	float move_z;
-	int map_index;
-	int bottom_index;
-
-	std::unique_ptr<CPlayer> m_pplayer;
-
-	bool isLeft;
-	bool isRight;
-	bool isSpace;
-	float move_x;
-	float acc_x;
-
-	float move_y;
-	bool isBottom;
-	bool isDrop;
-	float basic_v;
-	float velocity;
-
-	float stop_time;
-
-	// 회전용 변수
-	bool is_Rotating;
-	float now_angle;
-	float bef_mv_x;
-	float bef_mv_y;
+	std::array<std::unique_ptr<CPlayer>, 3> m_pplayers;
 
 public:
 	CMap(std::string filename, int& winWidth, int& winHeight, std::shared_ptr<CNetModule> NetModule);
@@ -56,11 +33,5 @@ public:
 
 	void KeyboardEvent(int state, unsigned char key);
 	void SpecialKeyEvent(int state, int key);
-
-	bool isOffTile();
-	void MoveBackOnTile();
-
-	void SetRotate();
-	void RotateMap(float ElapsedTime);
 };
 

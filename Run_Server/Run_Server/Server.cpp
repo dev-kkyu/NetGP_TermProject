@@ -36,12 +36,20 @@ std::array<SOCKET, 3>			g_client_sockets;
 std::array<std::thread, 3>		g_client_threads;
 std::mutex						g_mutex;
 float							g_map[100][16];
+// 플레이어 데이터
 std::array<bool, 3>				g_is_accept;
 std::array<bool, 3>				g_is_ready;
 std::array<CPlayerManager, 3>	g_player;
+
 std::unique_ptr<CRecordTimer>	g_recordTimer;
 
 CTimer							g_gameTimer;
+
+
+// 게임 루프
+void Update(float ElapsedTime);
+void SendData();
+
 
 int get_id()
 {
@@ -277,22 +285,24 @@ void process_packet(int my_id, char* packet)
 		switch (p->key)
 		{
 		case MY_KEY_EVENT::KEY_SPACE:
-			printf("%d: player key packet: space", my_id);
+			g_mutex.lock();
+			g_player[my_id].isSpace = p->is_on;
+			g_mutex.unlock();
 			break;
 		case MY_KEY_EVENT::KEY_LEFT:
-			printf("%d: player key packet: left", my_id);
+			g_mutex.lock();
+			g_player[my_id].isLeft = p->is_on;
+			g_mutex.unlock();
 			break;
 		case MY_KEY_EVENT::KEY_RIGHT:
-			printf("%d: player key packet: right", my_id);
+			g_mutex.lock();
+			g_player[my_id].isRight = p->is_on;
+			g_mutex.unlock();
 			break;
 		default:
-			printf("%d: player key packet: err", my_id);
+			printf("%d: player key packet: err\n", my_id);
 			break;
 		}
-		if (p->is_on)
-			printf(" 눌림\n");
-		else
-			printf(" 떼짐\n");
 	}
 		break;
 	default:
@@ -375,12 +385,45 @@ void RecvThread(int player_id)
 void game_loop()
 {
 	while (true) {
-		float elapsedTime = g_gameTimer.Tick(1);	// 초당 1번
+		bool is_start = true;
+		for (int i = 0; i < 3; ++i) {
+			g_mutex.lock();
+			if (g_is_ready[i] == false)
+				is_start = false;
+			g_mutex.unlock();
+		}
+		if (is_start)
+			break;
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+	//std::cout << "3초 뒤 시작" << std::endl;
+	//std::this_thread::sleep_for(std::chrono::seconds(3));
+	send_sc_game_start_packet();
+	g_recordTimer = std::unique_ptr<CRecordTimer>();		// 기록 시작
 
-		std::cout << "실행중..." << std::endl;
+	g_gameTimer.Tick(0);
+	while (true) {
+		float elapsedTime = g_gameTimer.Tick(100);	// 초당 1번
+
+		Update(elapsedTime);
+		SendData();
+
+		//std::cout << "실행중..." << std::endl;
 	}
 }
 
+void Update(float ElapsedTime)
+{
+	std::lock_guard<std::mutex> l{ g_mutex };
+	for (auto& p : g_player) {
+		p.Update(ElapsedTime);
+	}
+}
+
+void SendData()
+{
+	send_sc_position_packet();
+}
 
 int main(int argc, char *argv[])
 {

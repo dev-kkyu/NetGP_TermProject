@@ -20,6 +20,8 @@ void CPlayer::Initialize()
 	GLuint vao = InitBuffer();
 	SetVao(vao);
 
+	time_sec = 0.f;
+
 	TexFrame = 0;
 
 	isWalk = true;
@@ -31,7 +33,23 @@ void CPlayer::Initialize()
 void CPlayer::Update(float ElapsedTime)
 {
 	if (isInitialized) {
+		if (isWalk)
+			time_sec += 12.5f * ElapsedTime;		// 초당 텍스쳐 몇장 지나갈건지
+		if (time_sec >= 6.f)
+			time_sec -= 6.f;
+		TexFrame = int(time_sec);
+	}
+}
+
+void CPlayer::FixedUpdate()
+{
+}
+
+void CPlayer::Render()
+{
+	if (isInitialized) {
 		glUseProgram(m_shader);
+
 		GLint cameraLoc = glGetUniformLocation(m_shader, "cameraMat");
 		if (cameraLoc < 0) {
 			std::cerr << "cameraLoc 찾지 못함" << std::endl;
@@ -52,25 +70,7 @@ void CPlayer::Update(float ElapsedTime)
 		modelMat = glm::translate(glm::mat4(1.f), glm::vec3(move_x, -1.7f + move_y, -1.f)) * scale;
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMat));
 
-		static float time_sec;
-		if (isWalk)
-			time_sec += 12.5f * ElapsedTime;		// 초당 텍스쳐 몇장 지나갈건지
-		if (time_sec >= 6.f)
-			time_sec -= 6.f;
-		TexFrame = int(time_sec);
-	}
-}
-
-void CPlayer::FixedUpdate()
-{
-}
-
-void CPlayer::Render()
-{
-	if (isInitialized) {
-		glUseProgram(m_shader);
 		glBindVertexArray(m_vao);
-
 		if (TexFrame > 3)
 			glBindTexture(GL_TEXTURE_2D, Textures[6 - TexFrame]);
 		else

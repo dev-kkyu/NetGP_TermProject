@@ -136,7 +136,13 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::shared_ptr<CNe
 	case SC_POSITION: {
 		SC_POSITION_PACKET* p = reinterpret_cast<SC_POSITION_PACKET*>(packet);
 
-		std::cout << "플레이어 POS 패킷 수신" << std::endl;
+		m.lock();
+		for (int i = 0; i < 3; ++i) {
+			my_Net->m_player[i].info = p->p_info[i];
+		}
+		m.unlock();
+
+		//std::cout << "플레이어 POS 패킷 수신" << std::endl;
 	}
 					break;
 	case SC_GAME_END: {
@@ -167,7 +173,7 @@ void CNetModule::RecvThread(SOCKET s, std::mutex& m, std::shared_ptr<CNetModule>
 			std::cout << "서버 종료" << std::endl;
 			break;
 		}
-		std::cout << retval << "수신" << std::endl;
+		//std::cout << retval << "수신" << std::endl;
 
 		int received = retval;
 		char* ptr = buf;

@@ -33,6 +33,7 @@ struct PlayerData
 	float x;
 	float y;
 	float z;
+	bool is_walk;
 	int map_index;
 	int bottom_index;
 	bool is_rotating;

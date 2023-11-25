@@ -4,6 +4,8 @@
 class CPlayer : public CGameObject
 {
 private:
+	float time_sec;
+
 	glm::mat4 cameraMat;
 	glm::mat4 projMat;
 	glm::mat4 modelMat;
