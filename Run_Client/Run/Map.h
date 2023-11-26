@@ -20,7 +20,7 @@ private:
 	std::array<std::unique_ptr<CPlayer>, 3> m_pplayers;
 
 public:
-	CMap(std::string filename, int& winWidth, int& winHeight, std::shared_ptr<CNetModule> NetModule);
+	CMap(int& winWidth, int& winHeight, std::shared_ptr<CNetModule> NetModule);
 	virtual ~CMap();
 
 	virtual void Initialize() override;					//생성될 때 할 일
@@ -33,5 +33,7 @@ public:
 
 	void KeyboardEvent(int state, unsigned char key);
 	void SpecialKeyEvent(int state, int key);
+
+	void SetMap(std::vector<glm::mat4> map_data);
 };
 

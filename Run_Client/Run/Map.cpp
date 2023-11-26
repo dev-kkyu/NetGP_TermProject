@@ -7,28 +7,9 @@
 #include <algorithm>
 
 const int CMap::MAX_Layer = 30;
-CMap::CMap(std::string filename, int& winWidth, int& winHeight, std::shared_ptr<CNetModule> NetModule)
+CMap::CMap(int& winWidth, int& winHeight, std::shared_ptr<CNetModule> NetModule)
 	: w_width{ winWidth }, w_height{ winHeight }, m_NetModule{ NetModule }
 {
-	std::ifstream in{ filename };
-	if (!in) {
-		std::cerr << filename << " 열기 실패" << std::endl;
-	}
-	std::string str;
-	while (std::getline(in, str)) {
-		std::stringstream ss{ str };
-		glm::mat4 mati;
-		for (int i = 0; i < 4; ++i) {
-			glm::vec4 line;
-			ss >> line[0] >> line[1] >> line[2] >> line[3];
-			mati[i] = line;
-		}
-		map_data.push_back(mati);
-	}
-	if (not map_data.empty()) {
-		std::cout << filename << " 맵 로드 완료" << std::endl;
-	}
-
 	Initialize();
 }
 
@@ -160,12 +141,10 @@ void CMap::Render()
 		std::sort(idxs, idxs + 3, [&](const int& a, const int& b) {return m_NetModule->m_player[a].info.map_index + m_NetModule->m_player[a].info.z
 					> m_NetModule->m_player[b].info.map_index + m_NetModule->m_player[b].info.z; });
 		m_NetModule->m_mutex.unlock();
-		glDisable(GL_DEPTH_TEST);
 		for (int i = 0; i < 3; ++i) {
 			if (m_pplayers[idxs[i]])
 				m_pplayers[idxs[i]]->Render();
 		}
-		glEnable(GL_DEPTH_TEST);
 	}
 }
 
@@ -331,4 +310,9 @@ void CMap::SpecialKeyEvent(int state, int key)
 		}
 		break;
 	}
+}
+
+void CMap::SetMap(std::vector<glm::mat4> map_data)
+{
+	this->map_data = map_data;
 }

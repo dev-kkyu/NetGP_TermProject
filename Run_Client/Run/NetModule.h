@@ -28,7 +28,6 @@ public:
 	std::shared_ptr<CScene>			m_pscene;
 
 	// ¸â¹ö º¯¼ö
-	float							m_map[100][16];
 	std::array<bool, 3>				m_is_accept;
 	std::array<bool, 3>				m_is_ready;
 	std::array<CPlayerManager, 3>	m_player;

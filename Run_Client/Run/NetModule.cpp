@@ -44,7 +44,7 @@ void CNetModule::send_cs_key_event_packet(MY_KEY_EVENT key, bool is_on)
 	}
 }
 
-CNetModule::CNetModule(std::mutex& mutex) : m_map{}, m_is_accept{}, m_is_ready{}, m_player{}, m_sock{}, my_id{ -1 }, m_mutex{ mutex }
+CNetModule::CNetModule(std::mutex& mutex) : m_is_accept{}, m_is_ready{}, m_player{}, m_sock{}, my_id{ -1 }, m_mutex{ mutex }
 {
 	int retval;
 
@@ -121,6 +121,11 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::shared_ptr<CNe
 		SC_MAP_DATA_PACKET* p = reinterpret_cast<SC_MAP_DATA_PACKET*>(packet);
 
 		std::cout << "¸Ê ÆÐÅ¶ ¼ö½Å" << std::endl;
+		m.lock();
+		if (my_Net->m_pscene)
+			my_Net->m_pscene->SetMap(p->map);
+		m.unlock();
+		my_Net->send_cs_map_ok_packet();
 	}
 					break;
 	case SC_GAME_START: {

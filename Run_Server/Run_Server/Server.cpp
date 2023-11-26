@@ -39,6 +39,8 @@ float							g_map[100][16];
 // 플레이어 데이터
 std::array<bool, 3>				g_is_accept;
 std::array<bool, 3>				g_is_ready;
+bool							g_ready_lock;
+std::array<bool, 3>				g_is_map_ok;
 std::array<CPlayerManager, 3>	g_player;
 
 std::unique_ptr<CRecordTimer>	g_recordTimer;
@@ -267,9 +269,13 @@ void process_packet(int my_id, char* packet)
 {
 	switch (packet[2]) {
 	case CS_READY: {
-		std::cout << my_id << ": player ready packet 수신" << std::endl;
 		CS_READY_PACKET* p = reinterpret_cast<CS_READY_PACKET*>(packet);
+		std::cout << my_id << ": player ready packet 수신" << std::endl;
 		g_mutex.lock();
+		if (g_ready_lock) {
+			g_mutex.unlock();
+			break;
+		}
 		g_is_ready[my_id] = not g_is_ready[my_id];	// 해당하는 플레이어의 준비 상태를 반대로 바꿔줌
 		g_mutex.unlock();
 		send_sc_ready_packet(my_id);				// 접속한 모든 플레이어에게 전송
@@ -277,7 +283,10 @@ void process_packet(int my_id, char* packet)
 		break;
 	case CS_MAP_OK: {
 		CS_MAP_OK_PACKET* p = reinterpret_cast<CS_MAP_OK_PACKET*>(packet);
-
+		std::cout << my_id << ": player map ok packet 수신" << std::endl;
+		g_mutex.lock();
+		g_is_map_ok[my_id] = true;
+		g_mutex.unlock();
 	}
 		break;
 	case CS_KEY_EVENT: {
@@ -384,31 +393,52 @@ void RecvThread(int player_id)
 
 void game_loop()
 {
-	while (true) {
+	while (true) {				// ready 기다린다.
 		bool is_start = true;
 		for (int i = 0; i < 3; ++i) {
-			g_mutex.lock();
-			if (g_is_ready[i] == false)
+			std::lock_guard<std::mutex> l{ g_mutex };
+			if (g_is_ready[i] == false) {
 				is_start = false;
-			g_mutex.unlock();
+				break;
+			}
 		}
-		if (is_start)
+		if (is_start) {
+			std::lock_guard<std::mutex> l{ g_mutex };
+			g_ready_lock = true;
 			break;
+		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
-	//std::cout << "3초 뒤 시작" << std::endl;
-	//std::this_thread::sleep_for(std::chrono::seconds(3));
+
+	send_sc_map_data_packet();	// map_data 보낸다.
+	while (true) {				// map_ok 기다린다.
+		bool is_start = true;
+		for (int i = 0; i < 3; ++i) {
+			std::lock_guard<std::mutex> l{ g_mutex };
+			if (g_is_map_ok[i] == false) {
+				is_start = false;
+				break;
+			}
+		}
+		if (is_start) {
+			std::lock_guard<std::mutex> l{ g_mutex };
+			g_is_map_ok = std::array<bool, 3>{};	// 다음게임을 위한 초기화
+			break;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+	std::cout << "3초 뒤 시작" << std::endl;
+	std::this_thread::sleep_for(std::chrono::seconds(3));
 	send_sc_game_start_packet();
 	g_recordTimer = std::unique_ptr<CRecordTimer>();		// 기록 시작
 
 	g_gameTimer.Tick(0);
-	while (true) {
+	while (true) {			// 게임 진행
 		float elapsedTime = g_gameTimer.Tick(100);	// 초당 100번
 
 		Update(elapsedTime);
 		SendData();
-
-		//std::cout << "실행중..." << std::endl;
 	}
 }
 
@@ -457,6 +487,13 @@ int main(int argc, char *argv[])
 
 	bool end_flag = false;
 	while (not end_flag) {
+		{
+			// 판 시작시 맵 생성
+			std::vector<MapRect> map_data = MapRect::make_map();
+			for (int i = 0; i < 3; ++i)
+				g_player[i].SetMap(map_data);
+			memcpy(&g_map, map_data.data(), map_data.size() * sizeof(MapRect));
+		}
 		while (true) {
 			int id = get_id();
 			if (id == -1)

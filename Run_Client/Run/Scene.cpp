@@ -8,7 +8,7 @@ CScene::CScene(int& width, int& height, std::shared_ptr<CNetModule> NetModule)
 	: w_width{ width }, w_height{ height }, m_NetModule{ NetModule }, is_lobby{ true }
 {
 	m_lobby = std::make_unique<CLobby>();
-	m_map = std::make_unique<CMap>("./Map/map1.txt", w_width, w_height, NetModule);
+	m_map = std::make_unique<CMap>(w_width, w_height, NetModule);
 
 	m_NetModule->m_mutex.lock();
 	for (int i = 0; i < 3; ++i)
@@ -63,6 +63,14 @@ void CScene::SetIsReady(char player_id, bool is_ready)
 {
 	if (m_lobby)
 		m_lobby->is_ready[player_id] = is_ready;
+}
+
+void CScene::SetMap(float map_data[100][16])
+{
+	std::vector<glm::mat4> temp_data;
+	temp_data.resize(100);
+	memcpy(temp_data.data(), map_data, sizeof(glm::mat4) * temp_data.size());
+	m_map->SetMap(temp_data);
 }
 
 void CScene::SetGameStart()

@@ -1,7 +1,4 @@
 #include "PlayerManager.h"
-#include <fstream>
-#include <string>
-#include <sstream>
 
 CPlayerManager::CPlayerManager() : info{}
 {
@@ -38,25 +35,11 @@ CPlayerManager::~CPlayerManager()
 
 void CPlayerManager::Initialize()
 {
-	std::string filename = "./map1.txt";
-	std::ifstream in{ filename };
-	if (!in) {
-		std::cerr << filename << " 열기 실패" << std::endl;
-	}
-	std::string str;
-	while (std::getline(in, str)) {
-		std::stringstream ss{ str };
-		map_rect mati;
-		for (int i = 0; i < 4; ++i) {
-			map_rect::map_line line;
-			ss >> line[0] >> line[1] >> line[2] >> line[3];
-			mati[i] = line;
-		}
-		map_data.push_back(mati);
-	}
-	if (not map_data.empty()) {
-		std::cout << filename << " 맵 로드 완료" << std::endl;
-	}
+}
+
+void CPlayerManager::SetMap(std::vector<MapRect> map_data)
+{
+	this->map_data = map_data;
 }
 
 void CPlayerManager::Update(float ElapsedTime)
@@ -217,14 +200,4 @@ void CPlayerManager::RotateMap(float ElapsedTime)
 				info.bottom_index = 0;
 		}
 	}
-}
-
-map_rect::map_line& map_rect::operator[](int idx)
-{
-	return rect[idx];
-}
-
-float& map_rect::map_line::operator[](int idx)
-{
-	return line[idx];
 }

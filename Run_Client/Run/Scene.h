@@ -31,6 +31,7 @@ public:
 
 	void SetID(char player_id);
 	void SetIsReady(char player_id, bool is_ready);
+	void SetMap(float map_data[100][16]);
 	void SetGameStart();
 
 	void MouseEvent(int button, int state, int x, int y);

@@ -1,29 +1,21 @@
 #pragma once
 
 #include "protocol.h"
+#include "MakeMap.h"
 #include <vector>
-
-struct map_rect
-{
-	struct map_line
-	{
-		float line[4];
-		float& operator[](int idx);
-	};
-
-	map_line rect[4];
-	map_line& operator[](int idx);
-};
 
 class CPlayerManager
 {
 public:
 	PlayerData info;
-	std::vector<map_rect> map_data;
 
 	bool isLeft;
 	bool isRight;
 	bool isSpace;
+
+private:
+	std::vector<MapRect> map_data;
+
 	float acc_x;
 
 	bool isBottom;
@@ -42,6 +34,8 @@ public:
 	~CPlayerManager();
 
 	void Initialize();
+
+	void SetMap(std::vector<MapRect> map_data);
 
 	void Update(float ElapsedTime);
 

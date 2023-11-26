@@ -127,12 +127,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="MakeMap.cpp" />
     <ClCompile Include="PlayerManager.cpp" />
     <ClCompile Include="protocol.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MakeMap.h" />
     <ClInclude Include="PlayerManager.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="Timer.h" />
