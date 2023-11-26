@@ -29,6 +29,8 @@ void CPlayer::Initialize()
 	move_x = 0.f;
 	move_y = 0.f;
 	move_z = 0.f;
+
+	rotate_angle = 0.f;
 }
 
 void CPlayer::Update(float ElapsedTime)
@@ -67,8 +69,10 @@ void CPlayer::Render()
 		glUniformMatrix4fv(cameraLoc, 1, GL_FALSE, glm::value_ptr(cameraMat));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projMat));
 
+		glm::mat4 rotate = glm::rotate(glm::mat4(1.f), glm::radians(rotate_angle), glm::vec3(0.f, 0.f, 1.f));
+		glm::mat4 trans = glm::translate(glm::mat4(1.f), glm::vec3(move_x, -1.7f + move_y, -1.f + move_z));
 		glm::mat4 scale = glm::scale(glm::mat4(1.f), glm::vec3(0.3f, 0.3f, 1.f));
-		modelMat = glm::translate(glm::mat4(1.f), glm::vec3(move_x, -1.7f + move_y, -1.f + move_z)) * scale;
+		modelMat = rotate * trans * scale;
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMat));
 
 		glBindVertexArray(m_vao);
@@ -178,4 +182,9 @@ void CPlayer::SetMoveY(float move_y)
 void CPlayer::SetMoveZ(float move_z)
 {
 	this->move_z = move_z;
+}
+
+void CPlayer::SetRotate(float angle)
+{
+	this->rotate_angle = angle;
 }

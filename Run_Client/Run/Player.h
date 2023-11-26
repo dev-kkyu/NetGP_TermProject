@@ -19,6 +19,8 @@ private:
 	float move_y;
 	float move_z;
 
+	float rotate_angle;
+
 	int my_id;
 
 public:
@@ -41,5 +43,7 @@ public:
 	void SetMoveX(float move_x);
 	void SetMoveY(float move_y);
 	void SetMoveZ(float move_z);
+
+	void SetRotate(float angle);
 };
 

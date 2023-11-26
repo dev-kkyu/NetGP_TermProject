@@ -84,8 +84,11 @@ void CMap::Update(float ElapsedTime)
 				m_pplayers[i]->SetMoveY(m_NetModule->m_player[i].info.y);
 				if (i != id) {
 					float move_z = m_NetModule->m_player[id].info.map_index + m_NetModule->m_player[id].info.z - m_NetModule->m_player[i].info.map_index - m_NetModule->m_player[i].info.z;
-					m_pplayers[i]->SetMoveZ(move_z);
-				}		// 테스트때는 빼기
+					m_pplayers[i]->SetMoveZ(move_z);	// 플레이어 기준, 타 플레이어 거리 계산
+					float angle = -m_NetModule->m_player[i].info.now_angle + m_NetModule->m_player[id].info.now_angle;
+					angle += -180.f + ((m_NetModule->m_player[i].info.bottom_index + (2 - m_NetModule->m_player[id].info.bottom_index)) % 4) * 90.f;
+					m_pplayers[i]->SetRotate(angle);	// 플레이어 기준 각도 계산
+				}
 				m_pplayers[i]->SetWalk(m_NetModule->m_player[i].info.is_walk);
 				m_NetModule->m_mutex.unlock();
 				m_pplayers[i]->Update(ElapsedTime);
