@@ -1,5 +1,4 @@
 #include "Timer.h"
-#include <sstream>
 #include <thread>
 
 CTimer::CTimer() : last_time{ std::chrono::steady_clock::now() }, accm_time{ std::chrono::seconds{ 0 } }, fps{ 0 }, frame{ 0 }

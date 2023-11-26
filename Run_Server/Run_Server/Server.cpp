@@ -403,7 +403,7 @@ void game_loop()
 
 	g_gameTimer.Tick(0);
 	while (true) {
-		float elapsedTime = g_gameTimer.Tick(100);	// 초당 1번
+		float elapsedTime = g_gameTimer.Tick(100);	// 초당 100번
 
 		Update(elapsedTime);
 		SendData();
