@@ -24,10 +24,10 @@ CPlayerManager::CPlayerManager() : info{}
 	info.is_walk = true;
 
 	// 회전용 변수
-	info.is_rotating = false;
+	is_rotating = false;
 	info.now_angle = 0.f;
-	info.bef_mv_x = info.x;
-	info.bef_mv_y = info.y;
+	bef_mv_x = info.x;
+	bef_mv_y = info.y;
 
 	Initialize();
 }
@@ -61,7 +61,7 @@ void CPlayerManager::Initialize()
 
 void CPlayerManager::Update(float ElapsedTime)
 {
-	if (info.is_rotating)
+	if (is_rotating)
 		RotateMap(ElapsedTime);
 	else if (stop_time > 0.f) {
 		stop_time -= 1.f * ElapsedTime;
@@ -174,22 +174,22 @@ void CPlayerManager::MoveBackOnTile()
 
 void CPlayerManager::SetRotate()
 {
-	info.is_rotating = true;
+	is_rotating = true;
 	info.now_angle = 0.f;
-	info.bef_mv_x = info.x;
-	info.bef_mv_y = info.y;
+	bef_mv_x = info.x;
+	bef_mv_y = info.y;
 }
 
 void CPlayerManager::RotateMap(float ElapsedTime)
 {
 	static const float time_sec = 0.5f;
-	if (info.bef_mv_x == -1.75f) {
-		float finalx = 1.75f - info.bef_mv_y;
+	if (bef_mv_x == -1.75f) {
+		float finalx = 1.75f - bef_mv_y;
 		info.now_angle += 90.f / time_sec * ElapsedTime;
-		info.y -= info.bef_mv_y / time_sec * ElapsedTime;
-		info.x += (finalx - info.bef_mv_x) / time_sec * ElapsedTime;
+		info.y -= bef_mv_y / time_sec * ElapsedTime;
+		info.x += (finalx - bef_mv_x) / time_sec * ElapsedTime;
 		if (info.now_angle >= 90.f) {
-			info.is_rotating = false;
+			is_rotating = false;
 			info.is_walk = true;
 			info.bottom_index -= 1;
 			info.now_angle = 0.f;
@@ -200,13 +200,13 @@ void CPlayerManager::RotateMap(float ElapsedTime)
 				info.bottom_index = 3;
 		}
 	}
-	else if (info.bef_mv_x == 1.75f) {
-		float finalx = -1.75f + info.bef_mv_y;
+	else if (bef_mv_x == 1.75f) {
+		float finalx = -1.75f + bef_mv_y;
 		info.now_angle -= 90.f / time_sec * ElapsedTime;
-		info.y -= info.bef_mv_y / time_sec * ElapsedTime;
-		info.x -= (info.bef_mv_x - finalx) / time_sec * ElapsedTime;
+		info.y -= bef_mv_y / time_sec * ElapsedTime;
+		info.x -= (bef_mv_x - finalx) / time_sec * ElapsedTime;
 		if (info.now_angle <= -90.f) {
-			info.is_rotating = false;
+			is_rotating = false;
 			info.is_walk = true;
 			info.bottom_index += 1;
 			info.now_angle = 0.f;

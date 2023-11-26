@@ -85,7 +85,7 @@ void CMap::Update(float ElapsedTime)
 				if (i != id) {
 					float move_z = m_NetModule->m_player[id].info.map_index + m_NetModule->m_player[id].info.z - m_NetModule->m_player[i].info.map_index - m_NetModule->m_player[i].info.z;
 					m_pplayers[i]->SetMoveZ(move_z);
-				}
+				}		// 테스트때는 빼기
 				m_pplayers[i]->SetWalk(m_NetModule->m_player[i].info.is_walk);
 				m_NetModule->m_mutex.unlock();
 				m_pplayers[i]->Update(ElapsedTime);

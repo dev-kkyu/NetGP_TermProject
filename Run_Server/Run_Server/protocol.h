@@ -36,10 +36,7 @@ struct PlayerData
 	bool is_walk;
 	int map_index;
 	int bottom_index;
-	bool is_rotating;
 	float now_angle;
-	float bef_mv_x;
-	float bef_mv_y;
 };
 
 // 클라가 접속시 해당 클라에게 id 할당 (한명에게 보낸다)

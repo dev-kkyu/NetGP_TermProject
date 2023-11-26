@@ -33,6 +33,10 @@ public:
 
 	float stop_time;
 
+	bool is_rotating;
+	float bef_mv_x;
+	float bef_mv_y;
+
 public:
 	CPlayerManager();
 	~CPlayerManager();
