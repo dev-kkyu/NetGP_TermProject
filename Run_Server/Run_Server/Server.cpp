@@ -86,6 +86,7 @@ void send_sc_login_packet(char player_id)
 		g_mutex.lock();
 		g_is_accept[player_id] = false;
 		g_mutex.unlock();
+		closesocket(sock);
 	}
 }
 
@@ -112,6 +113,7 @@ void send_sc_logout_packet(char player_id)
 				g_is_accept[i] = false;
 				g_mutex.unlock();
 				send_sc_logout_packet(i);
+				closesocket(client_sockets[i]);
 			}
 		}
 	}
@@ -144,6 +146,7 @@ void send_sc_ready_packet(char player_id)
 				g_is_accept[i] = false;
 				g_mutex.unlock();
 				send_sc_logout_packet(i);
+				closesocket(client_sockets[i]);
 			}
 		}
 	}
@@ -172,6 +175,7 @@ void send_sc_map_data_packet()
 				g_is_accept[i] = false;
 				g_mutex.unlock();
 				send_sc_logout_packet(i);
+				closesocket(client_sockets[i]);
 			}
 		}
 	}
@@ -199,6 +203,7 @@ void send_sc_game_start_packet()
 				g_is_accept[i] = false;
 				g_mutex.unlock();
 				send_sc_logout_packet(i);
+				closesocket(client_sockets[i]);
 			}
 		}
 	}
@@ -228,6 +233,7 @@ void send_sc_position_packet()
 				g_is_accept[i] = false;
 				g_mutex.unlock();
 				send_sc_logout_packet(i);
+				closesocket(client_sockets[i]);
 			}
 		}
 	}
@@ -259,6 +265,7 @@ void send_sc_game_end_packet()
 				g_is_accept[i] = false;
 				g_mutex.unlock();
 				send_sc_logout_packet(i);
+				closesocket(client_sockets[i]);
 			}
 		}
 	}
@@ -382,6 +389,8 @@ void RecvThread(int player_id)
 	// 소켓 닫기
 	g_mutex.lock();
 	g_is_accept[player_id] = false;
+	if (not g_ready_lock)
+		g_client_threads[player_id].detach();	// 시작 전에 종료가 되면 detach 해준다.
 	g_mutex.unlock();
 	send_sc_logout_packet(player_id);
 	printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
@@ -495,9 +504,6 @@ int main(int argc, char *argv[])
 			memcpy(&g_map, map_data.data(), map_data.size() * sizeof(MapRect));
 		}
 		while (true) {
-			int id = get_id();
-			if (id == -1)
-				break;
 			// accept()
 			sockaddr_in clientaddr;
 			int addrlen = sizeof(clientaddr);
@@ -505,6 +511,11 @@ int main(int argc, char *argv[])
 			if (client_sock == INVALID_SOCKET) {
 				err_display("accept()");
 				end_flag = true;
+				break;
+			}
+			int id = get_id();
+			if (id == -1) {
+				closesocket(client_sock);
 				break;
 			}
 
@@ -518,6 +529,7 @@ int main(int argc, char *argv[])
 			{	// 로그인 처리
 				g_mutex.lock();
 				g_is_accept[id] = true;							// 전역데이터 변경
+				g_is_ready[id] = false;
 				g_client_sockets[id] = client_sock;				// ''
 				g_mutex.unlock();
 
@@ -554,6 +566,7 @@ int main(int argc, char *argv[])
 							g_is_accept[id] = false;		// 내가 나감
 							g_mutex.unlock();
 							send_sc_logout_packet(id);
+							closesocket(client_sock);
 							break;
 						}
 					}

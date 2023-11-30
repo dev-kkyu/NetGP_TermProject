@@ -31,6 +31,7 @@ public:
 
 	void SetID(char player_id);
 	void SetIsReady(char player_id, bool is_ready);
+	void SetIsAccept(char player_id, bool is_accept);
 	void SetMap(float map_data[100][16]);
 	void SetGameStart();
 

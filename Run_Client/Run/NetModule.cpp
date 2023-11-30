@@ -102,7 +102,7 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::shared_ptr<CNe
 		m.lock();
 		my_Net->m_is_accept[p->playerid] = false;
 		if (my_Net->m_pscene)
-			my_Net->m_pscene->SetIsReady(p->playerid, false);
+			my_Net->m_pscene->SetIsAccept(p->playerid, false);
 		m.unlock();
 		std::cout << "로그아웃 패킷 수신 - " << (int)p->playerid << "번 플레이어" << std::endl;
 	}
@@ -113,8 +113,10 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::shared_ptr<CNe
 		m.lock();
 		my_Net->m_is_accept[p->playerid] = true;
 		my_Net->m_is_ready[p->playerid] = p->ready;
-		if (my_Net->m_pscene)
+		if (my_Net->m_pscene) {
+			my_Net->m_pscene->SetIsAccept(p->playerid, true);
 			my_Net->m_pscene->SetIsReady(p->playerid, p->ready);
+		}
 		m.unlock();
 	}
 				 break;

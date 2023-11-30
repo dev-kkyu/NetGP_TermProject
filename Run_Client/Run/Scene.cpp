@@ -11,8 +11,10 @@ CScene::CScene(int& width, int& height, std::shared_ptr<CNetModule> NetModule)
 	m_map = std::make_unique<CMap>(w_width, w_height, NetModule);
 
 	m_NetModule->m_mutex.lock();
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < 3; ++i) {
+		m_lobby->is_accept[i] = m_NetModule->m_is_accept[i];
 		m_lobby->is_ready[i] = m_NetModule->m_is_ready[i];
+	}
 	m_lobby->my_id = m_NetModule->my_id;
 	m_NetModule->m_mutex.unlock();
 
@@ -63,6 +65,14 @@ void CScene::SetIsReady(char player_id, bool is_ready)
 {
 	if (m_lobby)
 		m_lobby->is_ready[player_id] = is_ready;
+}
+
+void CScene::SetIsAccept(char player_id, bool is_accept)
+{
+	if (not is_accept)
+		SetIsReady(player_id, false);
+	if (m_lobby)
+		m_lobby->is_accept[player_id] = is_accept;
 }
 
 void CScene::SetMap(float map_data[100][16])

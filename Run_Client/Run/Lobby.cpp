@@ -2,6 +2,16 @@
 #include "Image.h"
 #include <iostream>
 
+#define T_BACKGROUND	0
+#define T_MAIN			1
+#define T_END			2
+
+#define T_CONN_WAIT		0
+#define T_CONN_SUCC		1
+#define T_READY_SUCC	2
+#define T_READY_OFF		3
+#define T_READY_ON		4
+
 CLobby::CLobby() : is_ready{}
 {
 	GLuint shader = CreateShaderProgram("./Shader/LobbyShader.vert", "./Shader/LobbyShader.frag");
@@ -28,22 +38,27 @@ void CLobby::Render()
 		printf("lobby trans 찾지못함\n");
 	if (is_lobby) {
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
-		glBindTexture(GL_TEXTURE_2D, m_tex[0]);
+		glBindTexture(GL_TEXTURE_2D, m_tex_bground[T_MAIN]);
 		glDrawArrays(GL_QUADS, 0, 4);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		for (int i = 0; i < 3; ++i) {
-			auto mat = glm::translate(glm::mat4(1.f), glm::vec3(0.75f, 0.75f - (i * 0.25), 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.25f, 0.05f, 1.f));
+			auto mat = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.375f - (i * 0.475), 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.30f, 0.12f, 1.f));
 			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(mat));
-			if (is_ready[i])
-				glBindTexture(GL_TEXTURE_2D, m_tex[3]);
-			else
-				glBindTexture(GL_TEXTURE_2D, m_tex[2]);
+			if (is_accept[i]) {
+				if (is_ready[i])
+					glBindTexture(GL_TEXTURE_2D, m_tex_button[T_READY_SUCC]);
+				else
+					glBindTexture(GL_TEXTURE_2D, m_tex_button[T_CONN_SUCC]);
+			}
+			else {
+				glBindTexture(GL_TEXTURE_2D, m_tex_button[T_CONN_WAIT]);
+			}
 			glDrawArrays(GL_QUADS, 0, 4);
 		}
 	}
 	else {
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
-		glBindTexture(GL_TEXTURE_2D, m_tex[1]);
+		glBindTexture(GL_TEXTURE_2D, m_tex_bground[T_BACKGROUND]);
 		glDrawArrays(GL_QUADS, 0, 4);
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
@@ -92,24 +107,39 @@ GLuint CLobby::InitBuffer()
 	glVertexAttribPointer(TexLoc, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), reinterpret_cast<void*>(0)); //--- 텍스처 좌표 속성
 	glEnableVertexAttribArray(TexLoc);
 
-	// 텍스쳐 로드
-	glGenTextures(4, m_tex);
-	for (int i = 0; i < 4; ++i) {
-		glBindTexture(GL_TEXTURE_2D, m_tex[i]);
+	// 텍스쳐 로드 - 배경
+	glGenTextures(3, m_tex_bground);
+	for (int i = 0; i < 3; ++i) {
+		glBindTexture(GL_TEXTURE_2D, m_tex_bground[i]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		int ImageWidth, ImageHeight, numberOfChannel;
-		GLubyte* data;
-		if (0 == i)
-			data = CImage::LoadImg("./Resources/Lobby/Lobby.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
-		else if (1 == i)
+		GLubyte* data = nullptr;
+		if (T_BACKGROUND == i)
 			data = CImage::LoadImg("./Resources/BackGround.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
-		else if (2 == i)
-			data = CImage::LoadImg("./Resources/Lobby/ready_off.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
-		else
-			data = CImage::LoadImg("./Resources/Lobby/ready_on.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		else if (T_MAIN == i)
+			data = CImage::LoadImg("./Resources/Lobby/RUN.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		else if (T_END == i)
+			data = CImage::LoadImg("./Resources/Lobby/END.png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		if (!data)
+			std::cerr << i << ": image load Error" << std::endl;
+		int texLevel = numberOfChannel == 4 ? GL_RGBA : GL_RGB;
+		glTexImage2D(GL_TEXTURE_2D, 0, numberOfChannel, ImageWidth, ImageHeight, 0, texLevel, GL_UNSIGNED_BYTE, data);
+		CImage::FreeImg(data);
+	}
+	// 텍스쳐 로드 - 버튼
+	std::string button_file[5]{ "Connect_Wait", "Connect_Success", "Ready_Success", "Ready_OFF", "Ready_ON" };
+	glGenTextures(5, m_tex_button);
+	for (int i = 0; i < 5; ++i) {
+		glBindTexture(GL_TEXTURE_2D, m_tex_button[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		int ImageWidth, ImageHeight, numberOfChannel;
+		GLubyte* data = CImage::LoadImg("./Resources/Lobby/" + button_file[i] + ".png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
 		if (!data)
 			std::cerr << i << ": image load Error" << std::endl;
 		int texLevel = numberOfChannel == 4 ? GL_RGBA : GL_RGB;
