@@ -42,7 +42,7 @@ void main(int argc, char** argv)								//--- 윈도우 출력하고 콜백함수 설정
 {
 	printf("소켓을 연결합니다. ");
 	system("pause");
-	g_NetModule = std::make_shared<CNetModule>(std::ref(g_mutex));
+	g_NetModule = std::make_shared<CNetModule>(std::ref(g_mutex), argv[1]);		// 인자가 있다면 IP로 사용
 	g_thread = std::thread{ CNetModule::RecvThread, g_NetModule->m_sock, std::ref(g_mutex), g_NetModule };
 
 	//--- 윈도우 생성하기

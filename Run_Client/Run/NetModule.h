@@ -33,7 +33,7 @@ public:
 	std::array<CPlayerManager, 3>	m_player;
 
 public:
-	CNetModule(std::mutex& mutex);
+	CNetModule(std::mutex& mutex, char* SERVERIP = nullptr);
 	~CNetModule();
 
 	void SetScene(std::shared_ptr<CScene> pscene);
