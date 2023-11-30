@@ -11,6 +11,7 @@
 #define T_READY_SUCC	2
 #define T_READY_OFF		3
 #define T_READY_ON		4
+#define T_BORDER		5
 
 CLobby::CLobby() : is_ready{}
 {
@@ -39,10 +40,10 @@ void CLobby::Render()
 	if (is_lobby) {
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
 		glBindTexture(GL_TEXTURE_2D, m_tex_bground[T_MAIN]);
-		glDrawArrays(GL_QUADS, 0, 4);
+		glDrawArrays(GL_QUADS, 0, 4);		// 로비 뒷배경
 		glClear(GL_DEPTH_BUFFER_BIT);
-		for (int i = 0; i < 3; ++i) {
-			auto mat = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.375f - (i * 0.475), 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.30f, 0.12f, 1.f));
+		for (int i = 0; i < 3; ++i) {		// 플레이어 전원의 상태 나타내기
+			auto mat = glm::translate(glm::mat4(1.f), glm::vec3(0.05f, 0.375f - (i * 0.475), 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.30f, 0.12f, 1.f));
 			glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(mat));
 			if (is_accept[i]) {
 				if (is_ready[i])
@@ -55,11 +56,25 @@ void CLobby::Render()
 			}
 			glDrawArrays(GL_QUADS, 0, 4);
 		}
+		// 테두리
+		auto mat = glm::translate(glm::mat4(1.f), glm::vec3(0.05f, 0.375f - (my_id * 0.475), 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(1.2f, 0.24f, 1.f));
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(mat));
+		glBindTexture(GL_TEXTURE_2D, m_tex_button[T_BORDER]);
+		glDrawArrays(GL_QUADS, 0, 4);
+
+		// 버튼
+		mat = glm::translate(glm::mat4(1.f), glm::vec3(0.75f, -0.9f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.25f, 0.10f, 1.f));
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(mat));
+		if (is_ready[my_id])
+			glBindTexture(GL_TEXTURE_2D, m_tex_button[T_READY_ON]);
+		else
+			glBindTexture(GL_TEXTURE_2D, m_tex_button[T_READY_OFF]);
+		glDrawArrays(GL_QUADS, 0, 4);
 	}
 	else {
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
 		glBindTexture(GL_TEXTURE_2D, m_tex_bground[T_BACKGROUND]);
-		glDrawArrays(GL_QUADS, 0, 4);
+		glDrawArrays(GL_QUADS, 0, 4);	// 인게임 뒷배경
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 }
@@ -130,9 +145,9 @@ GLuint CLobby::InitBuffer()
 		CImage::FreeImg(data);
 	}
 	// 텍스쳐 로드 - 버튼
-	std::string button_file[5]{ "Connect_Wait", "Connect_Success", "Ready_Success", "Ready_OFF", "Ready_ON" };
-	glGenTextures(5, m_tex_button);
-	for (int i = 0; i < 5; ++i) {
+	std::string button_file[6]{ "Connect_Wait", "Connect_Success", "Ready_Success", "Ready_OFF", "Ready_ON", "Border"};
+	glGenTextures(6, m_tex_button);
+	for (int i = 0; i < 6; ++i) {
 		glBindTexture(GL_TEXTURE_2D, m_tex_button[i]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

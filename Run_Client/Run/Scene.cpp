@@ -97,7 +97,8 @@ void CScene::MouseEvent(int button, int state, int x, int y)
 	case GLUT_DOWN:
 		switch (button) {
 		case GLUT_LEFT_BUTTON:
-			m_NetModule->send_cs_ready_packet();
+			if (x > w_width / 4 * 3 and y > w_height / 10 * 9)
+				m_NetModule->send_cs_ready_packet();
 			break;
 		case GLUT_RIGHT_BUTTON:
 			break;
