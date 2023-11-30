@@ -44,8 +44,15 @@ void CNetModule::send_cs_key_event_packet(MY_KEY_EVENT key, bool is_on)
 
 CNetModule::CNetModule(std::mutex& mutex, char* SERVERIP) : m_is_accept{}, m_is_ready{}, m_player{}, m_sock{}, my_id{ -1 }, m_mutex{ mutex }
 {
-	if (not SERVERIP)
-		SERVERIP = const_cast<char*>("127.0.0.1");
+	std::string ipaddr;
+	if (not SERVERIP) {
+		std::cout << " IP 주소 입력 : ";
+		std::cin >> ipaddr;
+		if (ipaddr == "0")		// 0을 입력하면 로컬로 연결하도록..
+			SERVERIP = const_cast<char*>("127.0.0.1");
+		else
+			SERVERIP = const_cast<char*>(ipaddr.c_str());
+	}
 
 	int retval;
 

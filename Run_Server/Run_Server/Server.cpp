@@ -503,7 +503,7 @@ int main(int argc, char *argv[])
 				g_player[i].SetMap(map_data);
 			memcpy(&g_map, map_data.data(), map_data.size() * sizeof(MapRect));
 		}
-		while (true) {
+		while (get_id() >= 0) {		// id가 안 남을때 까지 accept
 			// accept()
 			sockaddr_in clientaddr;
 			int addrlen = sizeof(clientaddr);
@@ -514,10 +514,6 @@ int main(int argc, char *argv[])
 				break;
 			}
 			int id = get_id();
-			if (id == -1) {
-				closesocket(client_sock);
-				break;
-			}
 
 			// 접속한 클라이언트 정보 출력
 			char addr[INET_ADDRSTRLEN];
