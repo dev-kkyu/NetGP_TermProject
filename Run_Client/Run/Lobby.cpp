@@ -161,6 +161,22 @@ GLuint CLobby::InitBuffer()
 		glTexImage2D(GL_TEXTURE_2D, 0, numberOfChannel, ImageWidth, ImageHeight, 0, texLevel, GL_UNSIGNED_BYTE, data);
 		CImage::FreeImg(data);
 	}
+	// 텍스쳐 로드 - 숫자
+	glGenTextures(11, m_tex_numbers);
+	for (int i = 0; i < 11; ++i) {
+		glBindTexture(GL_TEXTURE_2D, m_tex_numbers[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		int ImageWidth, ImageHeight, numberOfChannel;
+		GLubyte* data = CImage::LoadImg("./Resources/Numbers/" + std::to_string(i) + ".png", &ImageWidth, &ImageHeight, &numberOfChannel, 0);
+		if (!data)
+			std::cerr << i << ": image load Error" << std::endl;
+		int texLevel = numberOfChannel == 4 ? GL_RGBA : GL_RGB;
+		glTexImage2D(GL_TEXTURE_2D, 0, numberOfChannel, ImageWidth, ImageHeight, 0, texLevel, GL_UNSIGNED_BYTE, data);
+		CImage::FreeImg(data);
+	}
 
 	return VAO;
 }
