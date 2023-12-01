@@ -37,7 +37,6 @@ public:
 	void SetGameStart();
 	void SetGameEnd(float* end_time);
 
-
 	void MouseEvent(int button, int state, int x, int y);
 	void KeyboardEvent(int state, unsigned char key);
 	void SpecialKeyEvent(int state, int key);

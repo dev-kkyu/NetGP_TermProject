@@ -84,7 +84,7 @@ void CLobby::Render()
 			int minute = int(end_time[i]) / 60;
 			int second = int(end_time[i]) % 60;
 			int decimal = int(end_time[i] * 100) % 100;
-			int t_val[8]{ minute / 10, minute % 10,10,second / 10,second % 10,10,decimal / 10,decimal % 10 };
+			int t_val[8]{ minute / 10, minute % 10, 10, second / 10, second % 10, 10, decimal / 10, decimal % 10 };
 
 			for (int j = 0; j < 8; ++j) {
 				auto mat = glm::translate(glm::mat4(1.f), glm::vec3(-0.25f + j * 0.1f, 0.375f - (i * 0.475), 0.f))
@@ -113,9 +113,8 @@ void CLobby::SetGameEnd(float* end_time)
 	is_end = true;
 	memcpy(this->end_time, end_time, sizeof(float) * 3);
 
-	//
 	for (int i = 0; i < 3; ++i) {
-		std::cout << "P" << i+1 <<": " << this->end_time[i] << std::endl;
+		std::cout << "P" << i + 1 << ": " << this->end_time[i] << std::endl;
 	}
 }
 

@@ -27,5 +27,7 @@ void main()
 //	else if(outIdx > 0.99f && outIdx < 1.01f){
 //		newColor.rb = vec2(0.f);
 //	}
+	if (alpha_val > 1.f)
+		newColor = vec4(1.f, 0.f, 0.f, 1.f);
 	FragColor = newColor;
 }

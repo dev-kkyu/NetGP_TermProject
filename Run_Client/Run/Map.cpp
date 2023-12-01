@@ -124,6 +124,8 @@ void CMap::Render()
 				for (int a = 0; a < 4; ++a) {
 					for (int b = 0; b < 4; ++b) {
 						alpha[a][b] = 1.f;
+						if (100 == index)
+							alpha[a][b] = 2.f;
 					}
 				}
 			}
