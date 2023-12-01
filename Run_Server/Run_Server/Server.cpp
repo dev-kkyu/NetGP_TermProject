@@ -41,6 +41,7 @@ std::array<bool, 3>				g_is_accept;
 std::array<bool, 3>				g_is_ready;
 bool							g_ready_lock;
 std::array<bool, 3>				g_is_map_ok;
+std::array<bool, 3>				g_is_end;
 std::array<CPlayerManager, 3>	g_player;
 
 std::unique_ptr<CRecordTimer>	g_recordTimer;
@@ -448,14 +449,20 @@ void game_loop()
 
 		Update(elapsedTime);
 		SendData();
+		if (g_is_end[0] * g_is_end[1] * g_is_end[2] == 1) break;
 	}
+	send_sc_game_end_packet();
 }
 
 void Update(float ElapsedTime)
 {
 	std::lock_guard<std::mutex> l{ g_mutex };
-	for (auto& p : g_player) {
-		p.Update(ElapsedTime);
+	for (int i = 0; i < 3; ++i) {
+		g_player[i].Update(ElapsedTime);
+		if (g_player[i].info.map_index >= 100) {
+			g_is_end[i] = true;
+			g_recordTimer->set_end_now(i);
+		}
 	}
 }
 
