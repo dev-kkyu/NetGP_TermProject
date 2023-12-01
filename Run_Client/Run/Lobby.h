@@ -13,14 +13,17 @@ private:
 public:
 	char my_id;
 	bool is_lobby;
+	bool is_end;
 	bool is_accept[3];
 	bool is_ready[3];
+	float end_time[3];
 
 public:
 	CLobby();
 	~CLobby();
 
 	void Render();
+	void SetGameEnd(float* end_time);
 
 	GLuint InitBuffer();
 };

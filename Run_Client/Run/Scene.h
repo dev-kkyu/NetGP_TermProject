@@ -12,6 +12,7 @@ private:
 	int& w_height;
 
 	bool is_lobby;
+	bool is_end;
 
 	std::shared_ptr<CNetModule> m_NetModule;
 	std::unique_ptr<CMap> m_map;
@@ -34,6 +35,8 @@ public:
 	void SetIsAccept(char player_id, bool is_accept);
 	void SetMap(float map_data[100][16]);
 	void SetGameStart();
+	void SetGameEnd(float* end_time);
+
 
 	void MouseEvent(int button, int state, int x, int y);
 	void KeyboardEvent(int state, unsigned char key);

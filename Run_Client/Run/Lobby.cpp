@@ -22,6 +22,9 @@ CLobby::CLobby() : is_ready{}
 	m_vao = vao;
 
 	is_lobby = true;
+	is_end = false;
+	end_time[0] = end_time[1] = end_time[2] = 0.f;
+
 	my_id = -1;
 }
 
@@ -71,11 +74,27 @@ void CLobby::Render()
 			glBindTexture(GL_TEXTURE_2D, m_tex_button[T_READY_OFF]);
 		glDrawArrays(GL_QUADS, 0, 4);
 	}
+	else if (is_end) {
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
+		glBindTexture(GL_TEXTURE_2D, m_tex_bground[T_END]);
+		glDrawArrays(GL_QUADS, 0, 4);		// 게임종료 뒷배경
+	}
 	else {
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
 		glBindTexture(GL_TEXTURE_2D, m_tex_bground[T_BACKGROUND]);
 		glDrawArrays(GL_QUADS, 0, 4);	// 인게임 뒷배경
 		glClear(GL_DEPTH_BUFFER_BIT);
+	}
+}
+
+void CLobby::SetGameEnd(float* end_time)
+{
+	is_end = true;
+	memcpy(this->end_time, end_time, sizeof(float) * 3);
+
+	//
+	for (int i = 0; i < 3; ++i) {
+		std::cout << "P" << i+1 <<": " << this->end_time[i] << std::endl;
 	}
 }
 

@@ -5,7 +5,7 @@
 #include <iostream>
 
 CScene::CScene(int& width, int& height, std::shared_ptr<CNetModule> NetModule)
-	: w_width{ width }, w_height{ height }, m_NetModule{ NetModule }, is_lobby{ true }
+	: w_width{ width }, w_height{ height }, m_NetModule{ NetModule }, is_lobby{ true }, is_end{ false }
 {
 	m_lobby = std::make_unique<CLobby>();
 	m_map = std::make_unique<CMap>(w_width, w_height, NetModule);
@@ -46,7 +46,7 @@ void CScene::Render()
 {
 	if (m_lobby)
 		m_lobby->Render();
-	if (not is_lobby)
+	if (not is_lobby and not is_end)
 		if (m_map)
 			m_map->Render();
 }
@@ -88,6 +88,13 @@ void CScene::SetGameStart()
 	is_lobby = false;
 	if (m_lobby)
 		m_lobby->is_lobby = false;
+}
+
+void CScene::SetGameEnd(float* end_time)
+{
+	is_end = true;
+	if (m_lobby)
+		m_lobby->SetGameEnd(end_time);
 }
 
 void CScene::MouseEvent(int button, int state, int x, int y)

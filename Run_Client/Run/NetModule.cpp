@@ -164,6 +164,10 @@ void CNetModule::process_packet(char* packet, std::mutex& m, std::shared_ptr<CNe
 		SC_GAME_END_PACKET* p = reinterpret_cast<SC_GAME_END_PACKET*>(packet);
 
 		std::cout << "GAME_END 패킷 수신" << std::endl;
+		m.lock();
+		if (my_Net->m_pscene)
+			my_Net->m_pscene->SetGameEnd(p->end_time);
+		m.unlock();
 	}
 					break;
 	default:
