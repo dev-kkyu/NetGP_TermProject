@@ -78,6 +78,27 @@ void CLobby::Render()
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
 		glBindTexture(GL_TEXTURE_2D, m_tex_bground[T_END]);
 		glDrawArrays(GL_QUADS, 0, 4);		// 게임종료 뒷배경
+		glClear(GL_DEPTH_BUFFER_BIT);
+		for (int i = 0; i < 3; ++i) {
+			// 00:00:00 총 8개 위치에 해당하는 값 정해주기
+			int minute = int(end_time[i]) / 60;
+			int second = int(end_time[i]) % 60;
+			int decimal = int(end_time[i] * 100) % 100;
+			int t_val[8]{ minute / 10, minute % 10,10,second / 10,second % 10,10,decimal / 10,decimal % 10 };
+
+			for (int j = 0; j < 8; ++j) {
+				auto mat = glm::translate(glm::mat4(1.f), glm::vec3(-0.25f + j * 0.1f, 0.375f - (i * 0.475), 0.f))
+					* glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.1f, 1.f));
+				glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(mat));
+				glBindTexture(GL_TEXTURE_2D, m_tex_numbers[t_val[j]]);
+				glDrawArrays(GL_QUADS, 0, 4);
+			}
+		}
+		//테두리
+		auto mat = glm::translate(glm::mat4(1.f), glm::vec3(0.05f, 0.375f - (my_id * 0.475), 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(1.2f, 0.24f, 1.f));
+		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(mat));
+		glBindTexture(GL_TEXTURE_2D, m_tex_button[T_BORDER]);
+		glDrawArrays(GL_QUADS, 0, 4);
 	}
 	else {
 		glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
