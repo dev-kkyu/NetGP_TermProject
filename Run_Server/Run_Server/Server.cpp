@@ -459,7 +459,7 @@ void Update(float ElapsedTime)
 	for (int i = 0; i < 3; ++i) {
 		g_player[i].Update(ElapsedTime);
 		if (not g_is_end[i]) {
-			if (g_player[i].info.map_index >= 100) {
+			if (g_player[i].info.map_index >= 100 - 1) {
 				g_is_end[i] = true;
 				if (g_recordTimer)
 					g_recordTimer->set_end_now(i);
@@ -592,6 +592,18 @@ int main(int argc, char *argv[])
 		// 게임 종료 시, 클라이언트의 종료를 기다림
 		for (auto& t : g_client_threads)
 			t.join();
+
+		// 전역 데이터 초기화
+		g_mutex.lock();
+		g_is_accept[0] = g_is_accept[1] = g_is_accept[2] = false;
+		g_is_ready[0] = g_is_ready[1] = g_is_ready[2] = false;
+		g_is_ready[0] = g_is_ready[1] = g_is_ready[2] = false;
+		g_ready_lock = false;
+		g_is_map_ok[0] = g_is_map_ok[1] = g_is_map_ok[2] = false;
+		g_is_end[0] = g_is_end[1] = g_is_end[2] = false;
+		g_player[0] = g_player[1] = g_player[2] = CPlayerManager{};
+		g_recordTimer.reset();
+		g_mutex.unlock();
 	}
 
 	// 소켓 닫기
