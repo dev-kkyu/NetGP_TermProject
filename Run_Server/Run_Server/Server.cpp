@@ -439,7 +439,7 @@ void game_loop()
 	std::cout << "3초 뒤 시작" << std::endl;
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 	send_sc_game_start_packet();
-	g_recordTimer = std::unique_ptr<CRecordTimer>();		// 기록 시작
+	g_recordTimer = std::make_unique<CRecordTimer>();		// 기록 시작
 
 	g_gameTimer.Tick(0);
 	while (true) {			// 게임 진행
@@ -447,7 +447,8 @@ void game_loop()
 
 		Update(elapsedTime);
 		SendData();
-		if (g_is_end[0] * g_is_end[1] * g_is_end[2] == 1) break;
+		if (g_is_end[0] and g_is_end[1] and g_is_end[2])
+			break;
 	}
 	send_sc_game_end_packet();
 }
@@ -460,10 +461,12 @@ void Update(float ElapsedTime)
 		if (not g_is_end[i]) {
 			if (g_player[i].info.map_index >= 100) {
 				g_is_end[i] = true;
-				g_recordTimer->set_end_now(i);
+				if (g_recordTimer)
+					g_recordTimer->set_end_now(i);
+				else
+					std::cerr << "RecordTimer alloc Error" << std::endl;
 			}
 		}
-		
 	}
 }
 
