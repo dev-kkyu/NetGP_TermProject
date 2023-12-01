@@ -9,6 +9,19 @@ MapRect::MapLine& MapRect::operator[](int idx)
 	return rect[idx];
 }
 
+MapRect::MapRect() : rect{}
+{
+}
+
+MapRect::MapRect(float value)
+	: rect{ {value, value, value, value},
+	{value, value, value, value},
+	{value, value, value, value},
+	{value, value, value, value}
+	}
+{
+}
+
 float& MapRect::MapLine::operator[](int idx)
 {
 	return line[idx];

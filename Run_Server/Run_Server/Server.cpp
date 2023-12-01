@@ -8,6 +8,8 @@
 #include <mutex>
 #include <chrono>
 
+//#define COMM_TEST		// 비어있는 맵으로 테스트
+
 class CRecordTimer
 {
 	std::chrono::steady_clock::time_point start_time;
@@ -502,17 +504,25 @@ int main(int argc, char *argv[])
 	if (retval == SOCKET_ERROR) err_quit("listen()");
 
 
-
 	// 데이터 통신에 사용할 변수
 
 	bool end_flag = false;
 	while (not end_flag) {
 		{
 			// 판 시작시 맵 생성
+#ifndef COMM_TEST
 			std::vector<MapRect> map_data = MapRect::make_map();
 			for (int i = 0; i < 3; ++i)
 				g_player[i].SetMap(map_data);
 			memcpy(&g_map, map_data.data(), map_data.size() * sizeof(MapRect));
+#else
+			std::vector<MapRect> map_data;
+			for (int i = 0; i < 100; ++i)
+				map_data.push_back(MapRect{ 1.f });
+			for (int i = 0; i < 3; ++i)
+				g_player[i].SetMap(map_data);
+			memcpy(&g_map, map_data.data(), map_data.size() * sizeof(MapRect));
+#endif
 		}
 		while (get_id() >= 0) {		// id가 안 남을때 까지 accept
 			// accept()

@@ -12,5 +12,8 @@ struct MapRect
 	MapLine rect[4];
 	MapLine& operator[](int idx);
 
+	MapRect();
+	MapRect(float value);
+
 	static std::vector<MapRect> make_map();
 };
