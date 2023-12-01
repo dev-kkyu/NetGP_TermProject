@@ -248,8 +248,6 @@ void send_sc_game_end_packet()
 	for (int index = 0; index < 3; ++index)
 		p.end_time[index] = g_recordTimer->get_record(index);
 
-	//end_time은 class Timer 가 선언되고나서 작성 할 예정
-
 	// 전역 데이터 복사
 	g_mutex.lock();
 	std::array<SOCKET, 3>	client_sockets = g_client_sockets;
@@ -459,10 +457,13 @@ void Update(float ElapsedTime)
 	std::lock_guard<std::mutex> l{ g_mutex };
 	for (int i = 0; i < 3; ++i) {
 		g_player[i].Update(ElapsedTime);
-		if (g_player[i].info.map_index >= 100) {
-			g_is_end[i] = true;
-			g_recordTimer->set_end_now(i);
+		if (not g_is_end[i]) {
+			if (g_player[i].info.map_index >= 100) {
+				g_is_end[i] = true;
+				g_recordTimer->set_end_now(i);
+			}
 		}
+		
 	}
 }
 
