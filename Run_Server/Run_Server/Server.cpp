@@ -445,10 +445,12 @@ void game_loop()
 
 	g_gameTimer.Tick(0);
 	while (true) {			// 게임 진행
-		float elapsedTime = g_gameTimer.Tick(100);	// 초당 100번
+		float elapsedTime = g_gameTimer.Tick(60);	// 초당 60번
 
 		Update(elapsedTime);
 		SendData();
+
+		std::lock_guard<std::mutex> l{ g_mutex };
 		if (g_is_end[0] and g_is_end[1] and g_is_end[2])
 			break;
 	}
