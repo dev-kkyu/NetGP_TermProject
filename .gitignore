@@ -3,6 +3,3 @@
 */.vs/
 **/Debug/*
 **/Release/*
-
-!**/Debug/*.dll
-!**/Release/*.dll

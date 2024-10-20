@@ -1,12 +1,20 @@
 #pragma once
 
-#include "OpenGL/glew.h"
-#include "OpenGL/freeglut.h"
-#include "OpenGL/glm/ext.hpp"
-#include <string>
+#ifdef NDEBUG	// Release	일때
+#	pragma comment (lib, "libglew32.lib")
+#else			// Debug	일때
+#   pragma comment (lib, "libglew32d.lib")
+#endif
 
-#pragma comment(lib, "glew32.lib")
-#pragma comment(lib, "freeglut.lib")
+#define GLEW_STATIC
+#include "glew.h"
+
+#define FREEGLUT_STATIC
+#include "freeglut.h"
+
+#include "glm/ext.hpp"
+
+#include <string>
 
 #include "../../Run_Server/Run_Server/protocol.h"
 
